@@ -8,13 +8,14 @@ export module DevTools.Systems;
 import Core.EnTTRegistry;
 import Core.Scheduler;
 import DevTools.MaterialResourceEditTool;
+import Gfx.Systems;
 
 export namespace DevTools {
 
     class DevToolsSystems {
     public:
 
-        DevToolsSystems(Core::EnTTRegistry&, Core::Scheduler&);
+        DevToolsSystems(Core::EnTTRegistry&, Core::Scheduler&, Gfx::GfxSystems&);
         ~DevToolsSystems();
 
         DevToolsSystems(DevToolsSystems&&) = delete;

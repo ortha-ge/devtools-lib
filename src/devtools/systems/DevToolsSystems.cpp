@@ -185,7 +185,7 @@ namespace DevTools {
 		return std::nullopt;
 	}
 
-	DevToolsSystems::DevToolsSystems(Core::EnTTRegistry &registry, Core::Scheduler &scheduler)
+	DevToolsSystems::DevToolsSystems(Core::EnTTRegistry &registry, Core::Scheduler &scheduler, Gfx::GfxSystems&)
 		: mRegistry{registry}
 		, mScheduler{scheduler} {
 		IMGUI_CHECKVERSION();
@@ -251,7 +251,7 @@ namespace DevTools {
 			});
 
 			auto createImGuiContextView = registry.view<Gfx::BGFXContext>(entt::exclude<ImGuiContext>);
-			createImGuiContextView.each([this, &registry](entt::entity entity) {
+			createImGuiContextView.each([this, &registry](entt::entity entity, const Gfx::BGFXContext&) {
 				bgfx::RendererType::Enum type = bgfx::getRendererType();
 				bgfx::ProgramHandle imguiProgram = bgfx::createProgram(
 					bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_ocornut_imgui"),
@@ -350,10 +350,20 @@ namespace DevTools {
 	}
 
 	DevToolsSystems::~DevToolsSystems() {
+		entt::registry &registry(mRegistry);
+
 		if (mRenderCallbackEntity != entt::null) {
-			entt::registry &registry(mRegistry);
 			registry.destroy(mRenderCallbackEntity);
 		}
+
+		registry.view<ImGuiContext>().each([](ImGuiContext& imguiContext) {
+			bgfx::destroy(imguiContext.fontTextureHandle);
+			bgfx::destroy(imguiContext.textureSamplerUniform);
+			bgfx::destroy(imguiContext.imageLodEnabledUniform);
+			bgfx::destroy(imguiContext.imguiImageProgramHandle);
+			bgfx::destroy(imguiContext.imguiProgramHandle);
+			//bgfx::destroy(imguiContext.layout);
+		});
 
 		mScheduler.unschedule(std::move(mTickHandle));
 		ImGui::DestroyContext();
