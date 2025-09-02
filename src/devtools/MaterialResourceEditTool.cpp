@@ -8,6 +8,7 @@ module DevTools.MaterialResourceEditTool;
 
 import Core.Any;
 import Core.JsonTypeSaverAdapter;
+import Core.ResourceHandle;
 import Core.Spatial;
 import Core.TypeSaver;
 import DevTools.Tool;
@@ -61,9 +62,12 @@ namespace DevTools {
 					mMaterialResourceEntity = registry.create();
 					registry.emplace<Gfx::MaterialDescriptor>(mMaterialResourceEntity, std::move(materialDescriptor));
 
+					auto resourceHandle{ registry.create() };
+					registry.emplace<Core::ResourceHandle>(resourceHandle, mMaterialResourceEntity);
+
 					mMaterialRenderObjectEntity = registry.create();
 					registry.emplace<Core::Spatial>(mMaterialRenderObjectEntity, 0.0f, 0.0f, 0.0f);
-					registry.emplace<Gfx::RenderObject>(mMaterialRenderObjectEntity, mMaterialResourceEntity);
+					registry.emplace<Gfx::RenderObject>(mMaterialRenderObjectEntity, resourceHandle);
 				}
 
 				auto& materialDescriptor{registry.get<Gfx::MaterialDescriptor>(mMaterialResourceEntity)};
