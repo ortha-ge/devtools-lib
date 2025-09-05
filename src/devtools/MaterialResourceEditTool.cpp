@@ -14,8 +14,8 @@ import Core.TypeSaver;
 import DevTools.Tool;
 import Gfx.Colour;
 import Gfx.RenderObject;
+import Gfx.Material;
 import Gfx.MaterialDescriptor;
-import Gfx.MaterialResource;
 
 namespace DevTools {
 
@@ -116,8 +116,8 @@ namespace DevTools {
 					_printExportedMaterialJSON(registry);
 				}
 
-				if (changed && registry.all_of<Gfx::MaterialResource>(mMaterialResourceEntity)) {
-					registry.remove<Gfx::MaterialResource>(mMaterialResourceEntity);
+				if (changed && registry.all_of<Gfx::Material>(mMaterialResourceEntity)) {
+					registry.remove<Gfx::Material>(mMaterialResourceEntity);
 				}
 			}
 
