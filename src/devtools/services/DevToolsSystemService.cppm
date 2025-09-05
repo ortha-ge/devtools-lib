@@ -9,6 +9,8 @@ export import DevTools.Systems;
 
 export namespace DevTools {
 
-    class DevToolsSystemsService : public kgr::single_service<DevToolsSystems, kgr::dependency<Core::EnTTRegistryService, Core::SchedulerService, Gfx::GfxSystemsService>>{};
+	class DevToolsSystemsService
+		: public kgr::single_service<DevToolsSystems,
+			  kgr::dependency<Core::EnTTRegistryService, Core::SchedulerService, Gfx::GfxSystemsService>> {};
 
-} // DevTools
+} // namespace DevTools

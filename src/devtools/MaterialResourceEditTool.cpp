@@ -27,9 +27,9 @@ namespace DevTools {
 =============
 %s)";
 
-	void MaterialResourceEditTool::setup(entt::registry &registry) {
-		const entt::entity testTool{registry.create()};
-		registry.emplace<Tool>(testTool, "Test", [this](Tool &tool, entt::registry &registry) {
+	void MaterialResourceEditTool::setup(entt::registry& registry) {
+		const entt::entity testTool{ registry.create() };
+		registry.emplace<Tool>(testTool, "Test", [this](Tool& tool, entt::registry& registry) {
 			if (!tool.isOpen) {
 				return;
 			}
@@ -38,11 +38,11 @@ namespace DevTools {
 				if (tool.isOpen && mMaterialResourceEntity == entt::null) {
 
 					mMaterialResourceEntity = registry.create();
-					registry.emplace<Core::ResourceLoadRequest>(mMaterialResourceEntity,
-						Core::ResourceLoadRequest::create<Core::TypeLoader>("assets/materials/cat.json",
-							std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::MaterialDescriptor>>()
-						)
-					);
+					registry.emplace<Core::ResourceLoadRequest>(
+						mMaterialResourceEntity,
+						Core::ResourceLoadRequest::create<Core::TypeLoader>(
+							"assets/materials/cat.json",
+							std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::MaterialDescriptor>>()));
 
 					mMaterialRenderObjectEntity = registry.create();
 					registry.emplace<Core::Spatial>(mMaterialRenderObjectEntity, 500.0f, 500.0f, 0.0f, 10.0f, 10.0f);
@@ -56,8 +56,9 @@ namespace DevTools {
 
 				const auto& materialResourceHandle{ registry.get<Core::ResourceHandle>(mMaterialResourceEntity) };
 
-				auto& materialDescriptor{registry.get<Gfx::MaterialDescriptor>(materialResourceHandle.mResourceEntity)};
-				auto& renderObject{registry.get<Gfx::RenderObject>(mMaterialRenderObjectEntity)};
+				auto& materialDescriptor{ registry.get<Gfx::MaterialDescriptor>(
+					materialResourceHandle.mResourceEntity) };
+				auto& renderObject{ registry.get<Gfx::RenderObject>(mMaterialRenderObjectEntity) };
 
 				bool changed{ false };
 				if (ImGui::Button("Next Frame", ImVec2(150, 50))) {
@@ -75,14 +76,11 @@ namespace DevTools {
 					changed = true;
 				}
 
-				const auto& alphaColour{ materialDescriptor.alphaColour.value_or({ 1.0f, 1.0f, 1.0f, 1.0f}) };
+				const auto& alphaColour{ materialDescriptor.alphaColour.value_or({ 1.0f, 1.0f, 1.0f, 1.0f }) };
 				float transparencyColour[3]{ alphaColour.r, alphaColour.g, alphaColour.b };
 				if (ImGui::ColorPicker3("Transparency Colour", transparencyColour)) {
-					materialDescriptor.alphaColour = {
-						transparencyColour[0],
-						transparencyColour[1],
-						transparencyColour[2]
-					};
+					materialDescriptor.alphaColour = { transparencyColour[0], transparencyColour[1],
+													   transparencyColour[2] };
 					changed = true;
 				}
 
@@ -115,7 +113,6 @@ namespace DevTools {
 			}
 
 
-
 			ImGui::End();
 		});
 	}
@@ -132,10 +129,9 @@ namespace DevTools {
 		}
 
 		auto& materialDescriptor{ registry.get<Gfx::MaterialDescriptor>(mMaterialResourceEntity) };
-		std::string exportedJSON{ Core::save(Core::Any{ materialDescriptor}) };
+		std::string exportedJSON{ Core::save(Core::Any{ materialDescriptor }) };
 
 		printf(PrintExportFormatString, exportedJSON.c_str());
 	}
 
-
-} // DevTools
+} // namespace DevTools

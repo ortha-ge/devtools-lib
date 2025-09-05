@@ -11,11 +11,11 @@ export namespace DevTools {
 
 	struct Tool {
 
-		using ToolUpdateFunction = std::function<void(Tool &, entt::registry &)>;
+		using ToolUpdateFunction = std::function<void(Tool&, entt::registry&)>;
 
-		std::string toolName{"Default Name"};
+		std::string toolName{ "Default Name" };
 		ToolUpdateFunction updateFunction;
-		bool isOpen{false};
+		bool isOpen{ false };
 	};
 
-} // DevTools
+} // namespace DevTools
