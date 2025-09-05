@@ -7,15 +7,19 @@ module;
 module DevTools.MaterialResourceEditTool;
 
 import Core.Any;
+import Core.JsonTypeLoaderAdapter;
 import Core.JsonTypeSaverAdapter;
 import Core.ResourceHandle;
+import Core.ResourceLoadRequest;
 import Core.Spatial;
+import Core.TypeLoader;
 import Core.TypeSaver;
 import DevTools.Tool;
 import Gfx.Colour;
 import Gfx.RenderObject;
 import Gfx.Material;
 import Gfx.MaterialDescriptor;
+import Gfx.Reflection.MaterialDescriptor;
 
 namespace DevTools {
 
@@ -32,45 +36,27 @@ namespace DevTools {
 
 			if (ImGui::Begin(tool.toolName.c_str(), &tool.isOpen)) {
 				if (tool.isOpen && mMaterialResourceEntity == entt::null) {
-					Gfx::MaterialDescriptor materialDescriptor{
-						"assets/shaders/sprite_shader_program.json",
-						"assets/textures/frog.png",
-						{
-							{
-								15,
-								24,
-								52,
-								54
-							},
-							{
-								79,
-								71,
-								150,
-								105
-							}
-						},
-						Gfx::Colour{
-							0.607843137255,
-							0.678431372549,
-							0.717647058823,
-							0.0
-						},
-						448,
-						160
-					};
 
 					mMaterialResourceEntity = registry.create();
-					registry.emplace<Gfx::MaterialDescriptor>(mMaterialResourceEntity, std::move(materialDescriptor));
-
-					auto resourceHandle{ registry.create() };
-					registry.emplace<Core::ResourceHandle>(resourceHandle, mMaterialResourceEntity);
+					registry.emplace<Core::ResourceLoadRequest>(mMaterialResourceEntity,
+						Core::ResourceLoadRequest::create<Core::TypeLoader>("assets/materials/cat.json",
+							std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::MaterialDescriptor>>()
+						)
+					);
 
 					mMaterialRenderObjectEntity = registry.create();
-					registry.emplace<Core::Spatial>(mMaterialRenderObjectEntity, 0.0f, 0.0f, 0.0f);
-					registry.emplace<Gfx::RenderObject>(mMaterialRenderObjectEntity, resourceHandle);
+					registry.emplace<Core::Spatial>(mMaterialRenderObjectEntity, 500.0f, 500.0f, 0.0f, 10.0f, 10.0f);
+					registry.emplace<Gfx::RenderObject>(mMaterialRenderObjectEntity, mMaterialResourceEntity);
 				}
 
-				auto& materialDescriptor{registry.get<Gfx::MaterialDescriptor>(mMaterialResourceEntity)};
+				if (!registry.all_of<Core::ResourceHandle>(mMaterialResourceEntity)) {
+					ImGui::End();
+					return;
+				}
+
+				const auto& materialResourceHandle{ registry.get<Core::ResourceHandle>(mMaterialResourceEntity) };
+
+				auto& materialDescriptor{registry.get<Gfx::MaterialDescriptor>(materialResourceHandle.mResourceEntity)};
 				auto& renderObject{registry.get<Gfx::RenderObject>(mMaterialRenderObjectEntity)};
 
 				bool changed{ false };

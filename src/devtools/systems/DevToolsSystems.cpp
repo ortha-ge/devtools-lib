@@ -1,5 +1,6 @@
 module;
 
+#include <chrono>
 #include <functional>
 #include <utility>
 
@@ -219,7 +220,16 @@ namespace DevTools {
 			);
 		}
 
-		mTickHandle = mScheduler.schedule([this] {
+		mTickHandle = mScheduler.schedule([this,
+			lastTick = std::chrono::steady_clock::now()] mutable {
+			using DeltaTimeCast = std::chrono::duration<float>;
+			auto clockNow = std::chrono::steady_clock::now();
+			auto deltaT = std::chrono::duration_cast<DeltaTimeCast>(clockNow - lastTick).count();
+			lastTick = clockNow;
+
+			ImGuiIO &io = ImGui::GetIO();
+			io.DeltaTime = deltaT;
+
 			entt::registry &registry(mRegistry);
 
 			auto mouseStateView = registry.view<Input::MouseState>();
