@@ -76,7 +76,7 @@ namespace DevTools {
 					changed = true;
 				}
 
-				const auto& alphaColour{ materialDescriptor.alphaColour.value_or({ 1.0f, 1.0f, 1.0f, 1.0f }) };
+				const auto& alphaColour{ materialDescriptor.alphaColour.value_or(Gfx::Colour{ 1.0f, 1.0f, 1.0f, 1.0f }) };
 				float transparencyColour[3]{ alphaColour.r, alphaColour.g, alphaColour.b };
 				if (ImGui::ColorPicker3("Transparency Colour", transparencyColour)) {
 					materialDescriptor.alphaColour = { transparencyColour[0], transparencyColour[1],
