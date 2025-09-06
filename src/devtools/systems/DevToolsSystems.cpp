@@ -469,6 +469,7 @@ namespace DevTools {
 	}
 
 	void DevToolsSystems::_renderImGui(entt::registry& registry) {
+		const bgfx::ViewId viewId{ 255 };
 		registry.view<ImGuiContext>().each([](const ImGuiContext& imGuiContext) {
 			const bgfx::Caps* caps = bgfx::getCaps();
 			const ImDrawData* drawData = ImGui::GetDrawData();
@@ -486,8 +487,8 @@ namespace DevTools {
 			float height = drawData->DisplaySize.y;
 
 			bx::mtxOrtho(ortho, x, x + width, y + height, y, 0.0f, 1000.0f, 0.0f, caps->homogeneousDepth);
-			bgfx::setViewTransform(1, nullptr, ortho);
-			bgfx::setViewRect(1, 0, 0, uint16_t(width), uint16_t(height));
+			bgfx::setViewTransform(viewId, nullptr, ortho);
+			bgfx::setViewRect(viewId, 0, 0, uint16_t(width), uint16_t(height));
 
 			const ImVec2 clipPos = drawData->DisplayPos; // (0,0) unless using multi-viewports
 			const ImVec2 clipScale = drawData->FramebufferScale;
@@ -578,7 +579,7 @@ namespace DevTools {
 					bgfx::setTexture(0, imGuiContext.textureSamplerUniform, texture);
 					bgfx::setVertexBuffer(0, &tvb, cmd->VtxOffset, numVertices);
 					bgfx::setIndexBuffer(&tib, cmd->IdxOffset, cmd->ElemCount);
-					bgfx::submit(1, program);
+					bgfx::submit(viewId, program);
 				}
 			}
 		});
