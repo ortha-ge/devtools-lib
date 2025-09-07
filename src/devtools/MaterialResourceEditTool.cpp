@@ -9,6 +9,7 @@ module DevTools.MaterialResourceEditTool;
 import Core.Any;
 import Core.JsonTypeLoaderAdapter;
 import Core.JsonTypeSaverAdapter;
+import Core.Log;
 import Core.ResourceHandle;
 import Core.ResourceLoadRequest;
 import Core.Spatial;
@@ -58,19 +59,19 @@ namespace DevTools {
 			}
 
 			if (ImGui::Begin(tool.toolName.c_str(), &tool.isOpen)) {
-				const bool createMaterialResource = _hasValidMaterialResource(registry);
+				const bool hasValidMaterial = _hasValidMaterialResource(registry);
 
-				if (mMaterialResourceEntity != entt::null && (!tool.isOpen || createMaterialResource)) {
+				if (mMaterialResourceEntity != entt::null && (!tool.isOpen || !hasValidMaterial)) {
 					registry.destroy(mMaterialResourceEntity);
 					mMaterialResourceEntity = entt::null;
 				}
 
-				if (mMaterialRenderObjectEntity != entt::null && (!tool.isOpen || createMaterialResource)) {
+				if (mMaterialRenderObjectEntity != entt::null && (!tool.isOpen || !hasValidMaterial)) {
 					registry.destroy(mMaterialRenderObjectEntity);
 					mMaterialRenderObjectEntity = entt::null;
 				}
 
-				if (tool.isOpen && createMaterialResource) {
+				if (tool.isOpen && !hasValidMaterial) {
 					mMaterialResourceEntity = registry.create();
 					registry.emplace<Core::ResourceLoadRequest>(
 						mMaterialResourceEntity,
@@ -148,19 +149,19 @@ namespace DevTools {
 
 	void MaterialResourceEditTool::_printExportedMaterialJSON(entt::registry& registry) {
 		if (mMaterialResourceEntity == entt::null) {
-			printf("No Material Resource\n");
+			Core::logEntry(registry, "No Material Resource.");
 			return;
 		}
 
 		if (!registry.all_of<Gfx::MaterialDescriptor>(mMaterialResourceEntity)) {
-			printf("Missing Material Descriptor\n");
+			Core::logEntry(registry, "Missing Material Descriptor.");
 			return;
 		}
 
 		auto& materialDescriptor{ registry.get<Gfx::MaterialDescriptor>(mMaterialResourceEntity) };
-		std::string exportedJSON{ Core::save(Core::Any{ materialDescriptor }) };
+		std::string exportedJSON{ Core::save(registry, Core::Any{ materialDescriptor }) };
 
-		printf(PrintExportFormatString, exportedJSON.c_str());
+		Core::logEntry(registry, PrintExportFormatString, exportedJSON);
 	}
 
 } // namespace DevTools
