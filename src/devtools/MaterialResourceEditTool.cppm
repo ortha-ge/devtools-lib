@@ -14,6 +14,8 @@ export namespace DevTools {
 	private:
 		void _printExportedMaterialJSON(entt::registry& registry);
 
+		bool _hasValidMaterialResource(entt::registry& registry) const;
+
 		entt::entity mMaterialRenderObjectEntity{ entt::null };
 		entt::entity mMaterialResourceEntity{ entt::null };
 	};
