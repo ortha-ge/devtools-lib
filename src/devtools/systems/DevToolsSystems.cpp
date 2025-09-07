@@ -432,7 +432,13 @@ namespace DevTools {
 							ImGui::EndMenu();
 						}
 
-						toolUpdateView.each([&registry](Tool& tool) { tool.updateFunction(tool, registry); });
+						toolUpdateView.each([&registry](Tool& tool) {
+							if (!tool.isOpen) {
+								return;
+							}
+
+							tool.updateFunction(tool, registry);
+						});
 
 						ImGui::EndMenuBar();
 					}
@@ -440,7 +446,6 @@ namespace DevTools {
 
 				ImGui::End();
 
-				// ImGui::ShowDemoWindow();
 				ImGui::Render();
 			});
 		});
@@ -585,5 +590,8 @@ namespace DevTools {
 		});
 	}
 
-	void DevToolsSystems::_setupTools(entt::registry& registry) { mMaterialResourceEditTool.setup(registry); }
+	void DevToolsSystems::_setupTools(entt::registry& registry) {
+		mLogViewerTool.setup(registry);
+		mMaterialEditorTool.setup(registry);
+	}
 } // namespace DevTools

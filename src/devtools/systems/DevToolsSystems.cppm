@@ -7,7 +7,8 @@ export module DevTools.Systems;
 
 import Core.EnTTRegistry;
 import Core.Scheduler;
-import DevTools.MaterialResourceEditTool;
+import DevTools.LogViewerTool;
+import DevTools.MaterialEditorTool;
 import Gfx.Systems;
 
 export namespace DevTools {
@@ -31,7 +32,9 @@ export namespace DevTools {
 		Core::Scheduler& mScheduler;
 		Core::TaskHandle mTickHandle{};
 		entt::entity mRenderCallbackEntity{ entt::null };
-		MaterialResourceEditTool mMaterialResourceEditTool;
+		LogViewerTool mLogViewerTool;
+		MaterialEditorTool mMaterialEditorTool;
+
 	};
 
 } // namespace DevTools

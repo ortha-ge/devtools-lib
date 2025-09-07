@@ -3,11 +3,11 @@ module;
 #include <entt/entity/entity.hpp>
 #include <entt/fwd.hpp>
 
-export module DevTools.MaterialResourceEditTool;
+export module DevTools.MaterialEditorTool;
 
 export namespace DevTools {
 
-	class MaterialResourceEditTool {
+	class MaterialEditorTool {
 	public:
 		void setup(entt::registry& registry);
 

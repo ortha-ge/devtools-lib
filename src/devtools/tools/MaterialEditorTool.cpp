@@ -4,7 +4,7 @@ module;
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
-module DevTools.MaterialResourceEditTool;
+module DevTools.MaterialEditorTool;
 
 import Core.Any;
 import Core.JsonTypeLoaderAdapter;
@@ -29,7 +29,7 @@ namespace DevTools {
 =============
 %s)";
 
-	bool MaterialResourceEditTool::_hasValidMaterialResource(entt::registry& registry) const {
+	bool MaterialEditorTool::_hasValidMaterialResource(entt::registry& registry) const {
 		if (mMaterialResourceEntity == entt::null) {
 			return false;
 		}
@@ -51,13 +51,9 @@ namespace DevTools {
 		return true;
 	}
 
-	void MaterialResourceEditTool::setup(entt::registry& registry) {
+	void MaterialEditorTool::setup(entt::registry& registry) {
 		const entt::entity testTool{ registry.create() };
-		registry.emplace<Tool>(testTool, "Test", [this](Tool& tool, entt::registry& registry) {
-			if (!tool.isOpen) {
-				return;
-			}
-
+		registry.emplace<Tool>(testTool, "Material Editor", [this](Tool& tool, entt::registry& registry) {
 			if (ImGui::Begin(tool.toolName.c_str(), &tool.isOpen)) {
 				const bool hasValidMaterial = _hasValidMaterialResource(registry);
 
@@ -147,7 +143,7 @@ namespace DevTools {
 		});
 	}
 
-	void MaterialResourceEditTool::_printExportedMaterialJSON(entt::registry& registry) {
+	void MaterialEditorTool::_printExportedMaterialJSON(entt::registry& registry) {
 		if (mMaterialResourceEntity == entt::null) {
 			Core::logEntry(registry, "No Material Resource.");
 			return;

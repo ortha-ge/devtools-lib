@@ -4,16 +4,18 @@ cmake_minimum_required(VERSION 3.31)
 find_package(imgui CONFIG REQUIRED)
 
 set (devtools-lib-src
-        src/devtools/MaterialResourceEditTool.cpp
         src/devtools/systems/DevToolsSystems.cpp
+        src/devtools/tools/LogViewerTool.cpp
+        src/devtools/tools/MaterialEditorTool.cpp
 )
 
 set (devtools-lib-modules
         src/devtools/ImGuiContext.cppm
-        src/devtools/MaterialResourceEditTool.cppm
         src/devtools/Tool.cppm
         src/devtools/services/DevToolsSystemService.cppm
         src/devtools/systems/DevToolsSystems.cppm
+        src/devtools/tools/LogViewerTool.cppm
+        src/devtools/tools/MaterialEditorTool.cppm
 )
 
 add_library(devtools-lib STATIC ${devtools-lib-src} ${devtools-lib-modules})
