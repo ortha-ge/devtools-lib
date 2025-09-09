@@ -1,5 +1,6 @@
 module;
 
+#include <glm/glm.hpp>
 #include <entt/entt.hpp>
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -76,7 +77,7 @@ namespace DevTools {
 							std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::MaterialDescriptor>>()));
 
 					mMaterialRenderObjectEntity = registry.create();
-					registry.emplace<Core::Spatial>(mMaterialRenderObjectEntity, 500.0f, 500.0f, 10.0f, 20.0f, 20.0f);
+					registry.emplace<Core::Spatial>(mMaterialRenderObjectEntity, glm::vec3{ 500.0f, 500.0f, 10.0f }, glm::vec3{ 20.0f, 20.0f, 1.0f });
 					registry.emplace<Gfx::Sprite>(mMaterialRenderObjectEntity);
 					registry.emplace<Gfx::RenderObject>(mMaterialRenderObjectEntity, mMaterialResourceEntity);
 				}
