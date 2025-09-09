@@ -96,12 +96,12 @@ namespace DevTools {
 				auto& renderObject{ registry.get<Gfx::RenderObject>(mMaterialRenderObjectEntity) };
 
 				bool changed{ false };
-				if (ImGui::Button("Next Frame", ImVec2(150, 50))) {
-					renderObject.currentSpriteFrame++;
-					if (renderObject.currentSpriteFrame >= materialDescriptor->spriteFrames.size()) {
-						renderObject.currentSpriteFrame = 0;
-					}
-				}
+				// if (ImGui::Button("Next Frame", ImVec2(150, 50))) {
+				// 	renderObject.currentSpriteFrame++;
+				// 	if (renderObject.currentSpriteFrame >= materialDescriptor->spriteFrames.size()) {
+				// 		renderObject.currentSpriteFrame = 0;
+				// 	}
+				// }
 
 				if (ImGui::InputText("Shader Program File-Path", &materialDescriptor->shaderProgramFilePath)) {
 					changed = true;
