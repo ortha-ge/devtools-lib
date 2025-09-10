@@ -65,19 +65,13 @@ namespace DevTools {
 				}
 
 				if (tool.isOpen && !hasValidMaterial) {
-					mMaterialResource = Core::ResourceHandle::create<Core::TypeLoader>(
-							"assets/materials/cat.json",
-							std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::MaterialDescriptor>>());
+					mMaterialResource = Core::ResourceLoadRequest::create<Core::TypeLoader>(
+						registry, "assets/materials/cat.json",
+						std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::MaterialDescriptor>>());
 
-					auto loadRequest = registry.create();
-					registry.emplace<Core::ResourceLoadRequest>(loadRequest, mMaterialResource);
-
-					auto spriteResource = Core::ResourceHandle::create<Core::TypeLoader>(
-												"assets/sprites/cat.json",
-												std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::SpriteDescriptor>>());
-
-					loadRequest = registry.create();
-					registry.emplace<Core::ResourceLoadRequest>(loadRequest, spriteResource);
+					auto spriteResource = Core::ResourceLoadRequest::create<Core::TypeLoader>(
+						registry, "assets/sprites/cat.json",
+						std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::SpriteDescriptor>>());
 
 					mMaterialRenderObjectEntity = registry.create();
 					registry.emplace<Core::Spatial>(mMaterialRenderObjectEntity, glm::vec3{ 500.0f, 500.0f, 10.0f }, glm::vec3{ 20.0f, 20.0f, 1.0f });
