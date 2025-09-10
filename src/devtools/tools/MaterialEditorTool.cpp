@@ -12,6 +12,7 @@ import Core.JsonTypeLoaderAdapter;
 import Core.JsonTypeSaverAdapter;
 import Core.Log;
 import Core.ResourceHandle;
+import Core.ResourceHandleUtils;
 import Core.ResourceLoadRequest;
 import Core.Spatial;
 import Core.TypeLoader;
