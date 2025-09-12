@@ -437,7 +437,16 @@ namespace DevTools {
 								return;
 							}
 
-							tool.updateFunction(tool, registry);
+							bool minimized = !ImGui::Begin(tool.toolName.c_str(), &tool.isOpen);
+							if (!minimized) {
+								tool.updateFunction(registry, tool);
+							}
+
+							if (!tool.isOpen || minimized) {
+								tool.closeFunction(registry, tool);
+							}
+
+							ImGui::End();
 						});
 
 						ImGui::EndMenuBar();
@@ -593,5 +602,6 @@ namespace DevTools {
 	void DevToolsSystems::_setupTools(entt::registry& registry) {
 		mLogViewerTool.setup(registry);
 		mMaterialEditorTool.setup(registry);
+		mSpriteEditorTool.setup(registry);
 	}
 } // namespace DevTools
