@@ -18,7 +18,7 @@ import Core.Spatial;
 import Core.TypeLoader;
 import Core.TypeSaver;
 import DevTools.Tool;
-import Gfx.Colour;
+import Gfx.Camera;
 import Gfx.RenderObject;
 import Gfx.Sprite;
 import Gfx.SpriteObject;
@@ -70,12 +70,13 @@ namespace DevTools {
 						registry, "assets/materials/cat.json",
 						std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::MaterialDescriptor>>());
 
-					auto spriteResource = Core::ResourceLoadRequest::create<Core::TypeLoader>(
-						registry, "assets/sprites/cat.json",
-						std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::SpriteDescriptor>>());
+					Gfx::Sprite spriteResource {};
+					spriteResource.frames = {
+						{ { 0.0f, 0.0f }, { 100.0f, 100.0f } }
+					};
 
 					mMaterialRenderObjectEntity = registry.create();
-					registry.emplace<Core::Spatial>(mMaterialRenderObjectEntity, glm::vec3{ 500.0f, 500.0f, 10.0f }, glm::vec3{ 20.0f, 20.0f, 1.0f });
+					registry.emplace<Core::Spatial>(mMaterialRenderObjectEntity, glm::vec3{ 50.0f, 50.0f, 50.0f });
 					registry.emplace<Gfx::SpriteObject>(mMaterialRenderObjectEntity, spriteResource);
 					registry.emplace<Gfx::RenderObject>(mMaterialRenderObjectEntity, mMaterialResource);
 				}
@@ -96,15 +97,26 @@ namespace DevTools {
 					return;
 				}
 
-				auto& renderObject{ registry.get<Gfx::RenderObject>(mMaterialRenderObjectEntity) };
+				auto cameraView = registry.view<Gfx::Camera>();
+				if (cameraView.empty()) {
+					return;
+				}
 
+				const auto& cameraEntity = cameraView.front();
+				if (!registry.all_of<Core::Spatial>(cameraEntity)) {
+					return;
+				}
+
+				const auto& cameraSpatial = registry.get<Core::Spatial>(cameraEntity);
+
+				auto& renderObject{ registry.get<Gfx::RenderObject>(mMaterialRenderObjectEntity) };
+				auto& renderObjectSpatial{ registry.get<Core::Spatial>(mMaterialRenderObjectEntity) };
+				renderObjectSpatial.position = cameraSpatial.position + mMaterialRenderPos;
 				bool changed{ false };
-				// if (ImGui::Button("Next Frame", ImVec2(150, 50))) {
-				// 	renderObject.currentSpriteFrame++;
-				// 	if (renderObject.currentSpriteFrame >= materialDescriptor->spriteFrames.size()) {
-				// 		renderObject.currentSpriteFrame = 0;
-				// 	}
-				// }
+
+				if (ImGui::InputFloat3("Material Render Pos", &mMaterialRenderPos[0])) {
+
+				}
 
 				if (ImGui::InputText("Shader Program File-Path", &materialDescriptor->shaderProgramFilePath)) {
 					changed = true;
@@ -114,23 +126,14 @@ namespace DevTools {
 					changed = true;
 				}
 
-				const auto& alphaColour{ materialDescriptor->alphaColour.value_or(Gfx::Colour{ 1.0f, 1.0f, 1.0f, 1.0f }) };
-				float transparencyColour[4]{ alphaColour.r, alphaColour.g, alphaColour.b, alphaColour.a };
-				if (ImGui::ColorPicker4("Transparency Colour", transparencyColour)) {
-					materialDescriptor->alphaColour = { transparencyColour[0], transparencyColour[1],
-													   transparencyColour[2], transparencyColour[3] };
+				auto alphaColour{ materialDescriptor->alphaColour.value_or(glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f }) };
+				if (ImGui::ColorPicker4("Transparency Colour", &alphaColour[0])) {
+					materialDescriptor->alphaColour = alphaColour;
 					changed = true;
 				}
 
 				if (ImGui::Button("Clear Transparency Colour")) {
 					materialDescriptor->alphaColour = std::nullopt;
-					changed = true;
-				}
-
-				float dimensions[2]{ materialDescriptor->width, materialDescriptor->height };
-				if (ImGui::InputFloat2("Dimensions", dimensions)) {
-					materialDescriptor->width = dimensions[0];
-					materialDescriptor->height = dimensions[1];
 					changed = true;
 				}
 

@@ -4,6 +4,7 @@ module;
 
 #include <entt/entity/entity.hpp>
 #include <entt/fwd.hpp>
+#include <glm/vec3.hpp>
 
 export module DevTools.MaterialEditorTool;
 
@@ -22,6 +23,7 @@ export namespace DevTools {
 
 		entt::entity mMaterialRenderObjectEntity{ entt::null };
 		std::shared_ptr<Core::ResourceHandle> mMaterialResource{};
+		glm::vec3 mMaterialRenderPos{ 225.0f, 150.0f, 10.0f };
 	};
 
 } // namespace DevTools
