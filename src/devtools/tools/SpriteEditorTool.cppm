@@ -1,18 +1,16 @@
 module;
 
-#include <optional>
 #include <string>
-#include <utility>
 
 #include <entt/fwd.hpp>
 #include <entt/entity/entity.hpp>
 #include <glm/vec3.hpp>
-#include <rxcpp/rx.hpp>
+#include <rpp/rpp.hpp>
 
 export module DevTools.SpriteEditorTool;
 
 import Core.ResourceHandle;
-import Gfx.Sprite;
+import Gfx.SpriteDescriptor;
 
 export namespace DevTools {
 
@@ -32,20 +30,20 @@ export namespace DevTools {
 		void registerSubscriptions(entt::registry&);
 		void releaseSubscriptions();
 
-		rxcpp::observable<std::string> observeMaterialResourceFilePath() const;
-		rxcpp::observable<Gfx::Sprite> observeSprite() const;
-
 		void loadMaterialResource(entt::registry&, std::string) const;
-		void setSprite(entt::registry&, Gfx::Sprite) const;
+		void setSprite(entt::registry&, Gfx::SpriteDescriptor) const;
+
+		static void _printSavedSpriteJSON(entt::registry&, const Gfx::SpriteDescriptor&);
 
 		entt::entity mSpriteObjectRoot{ entt::null };
 		glm::vec3 mSpriteRenderPos{ 225.0f, 150.0f, 10.0f };
 		uint32_t mSelectedFrame{ 0u };
 
-		rxcpp::subjects::behavior<std::string> mMaterialResourceFilePath;
-		rxcpp::subjects::behavior<Gfx::Sprite> mSprite;
-		rxcpp::composite_subscription mSubscriptions;
-		rxcpp::schedulers::run_loop mRunLoop;
+		rpp::subjects::behavior_subject<std::string> mMaterialResourceFilePath;
+		rpp::subjects::behavior_subject<Gfx::SpriteDescriptor> mSprite;
+
+		rpp::schedulers::run_loop mRunLoop;
+		rpp::composite_disposable mSubscriptions;
 
 	};
 

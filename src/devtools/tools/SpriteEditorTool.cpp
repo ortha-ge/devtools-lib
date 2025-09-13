@@ -7,46 +7,62 @@ module;
 #include <entt/entt.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include <rxcpp/rx.hpp>
+#include <rpp/rpp.hpp>
 
 module DevTools.SpriteEditorTool;
 
+import Core.Any;
 import Core.JsonTypeLoaderAdapter;
+import Core.JsonTypeSaverAdapter;
+import Core.Log;
 import Core.ResourceLoadRequest;
 import Core.Spatial;
 import Core.TypeLoader;
+import Core.TypeSaver;
 import DevTools.Tool;
 import Gfx.Camera;
 import Gfx.MaterialDescriptor;
 import Gfx.RenderObject;
+import Gfx.Sprite;
 import Gfx.SpriteObject;
 import Gfx.Reflection.MaterialDescriptor;
+import Gfx.Reflection.Sprite;
+
+namespace DevTools::SpriteEditorToolInternal {
+	constexpr const char* PrintExportFormatString = R"(Sprite JSON
+=============
+{})";
+
+}
 
 namespace DevTools {
 
 	SpriteEditorTool::SpriteEditorTool()
 		: mMaterialResourceFilePath("")
-		, mSprite({}) {
-
-
+		, mSprite(Gfx::SpriteDescriptor{}) {
 	}
 
 	void SpriteEditorTool::registerSubscriptions(entt::registry& registry) {
-		mSubscriptions.add(observeMaterialResourceFilePath()
-			.observe_on(rxcpp::observe_on_run_loop(mRunLoop))
-			.subscribe([this, &registry](auto&& materialFilePath) {
+		mSubscriptions.add(mMaterialResourceFilePath.get_observable()
+			| rpp::operators::debounce(std::chrono::milliseconds(500), rpp::schedulers::new_thread())
+			| rpp::operators::observe_on(mRunLoop)
+			| rpp::operators::subscribe_with_disposable([this, &registry](auto&& materialFilePath) {
 				loadMaterialResource(registry, materialFilePath);
-			}));
+			})
+		);
 
-		mSubscriptions.add(observeSprite()
-			.observe_on(rxcpp::observe_on_run_loop(mRunLoop))
-			.subscribe([this, &registry](auto&& spriteFilePath) {
-				setSprite(registry, spriteFilePath);
-			}));
+		mSubscriptions.add(mSprite.get_observable()
+			| rpp::operators::distinct_until_changed()
+			| rpp::operators::debounce(std::chrono::milliseconds(500), rpp::schedulers::new_thread())
+			| rpp::operators::observe_on(mRunLoop)
+			| rpp::operators::subscribe_with_disposable([this, &registry](auto&& sprite) {
+				setSprite(registry, sprite);
+			})
+		);
 	}
 
 	void SpriteEditorTool::releaseSubscriptions() {
-		mSubscriptions = {};
+		mSubscriptions.clear();
 	}
 
 	void SpriteEditorTool::setup(entt::registry& registry) {
@@ -62,43 +78,42 @@ namespace DevTools {
 		if (mSpriteObjectRoot == entt::null) {
 			mSpriteObjectRoot = registry.create();
 			registry.emplace<Core::Spatial>(mSpriteObjectRoot, glm::vec3{}, glm::vec3(5.0f, 5.0f, 1.0f));
-			registry.emplace<Gfx::RenderObject>(mSpriteObjectRoot);
-			registry.emplace<Gfx::SpriteObject>(mSpriteObjectRoot, mSprite.get_value());
 		}
 
 		registerSubscriptions(registry);
 	}
 
 	void SpriteEditorTool::update(entt::registry& registry) {
-		mRunLoop.dispatch();
+		if (!mRunLoop.is_empty()) {
+			mRunLoop.dispatch();
+		}
 
 		std::string materialResourceFilePath = mMaterialResourceFilePath.get_value();
 		if (ImGui::InputText("Material Resource File Path", &materialResourceFilePath)) {
-			mMaterialResourceFilePath.get_subscriber().on_next(materialResourceFilePath);
+			mMaterialResourceFilePath.get_observer().on_next(materialResourceFilePath);
 		}
 
-		bool changed { false };
-		Gfx::Sprite sprite = mSprite.get_value();
+		Gfx::SpriteDescriptor spriteDescriptor = mSprite.get_value();
 		if (ImGui::CollapsingHeader("Frames")) {
-			for (size_t i = 0; i < sprite.frames.size(); ++i) {
+			for (size_t i = 0; i < spriteDescriptor.frames.size(); ++i) {
 				if (ImGui::TreeNode(std::format("Frame {}", i).c_str())) {
-					auto& frame{ sprite.frames[i] };
-					changed =
-						ImGui::InputFloat2("Bottom Left", &frame.bottomLeft[0]) ||
-						ImGui::InputFloat2("Top Right", &frame.topRight[0]);
+					auto& frame{ spriteDescriptor.frames[i] };
+					ImGui::InputFloat2("Bottom Left", &frame.bottomLeft[0]);
+					ImGui::InputFloat2("Top Right", &frame.topRight[0]);
 					ImGui::TreePop();
 				}
 			}
 		}
 
 		if (ImGui::Button("Add Frame")) {
-			sprite.frames.emplace_back(glm::vec2{ 0.0f, 0.0f }, glm::vec2{ 100.0f, 100.0f });
-			changed = true;
+			spriteDescriptor.frames.emplace_back(glm::vec2{ 0.0f, 0.0f }, glm::vec2{ 100.0f, 100.0f });
 		}
 
-		if (changed) {
-			mSprite.get_subscriber().on_next(sprite);
+		if (ImGui::Button("Export Sprite JSON")) {
+			_printSavedSpriteJSON(registry, spriteDescriptor);
 		}
+
+		mSprite.get_observer().on_next(std::move(spriteDescriptor));
 
 		// Sync with the camera position
 		auto cameraView = registry.view<Gfx::Camera>();
@@ -126,27 +141,22 @@ namespace DevTools {
 		releaseSubscriptions();
 	}
 
-	rxcpp::observable<std::string> SpriteEditorTool::observeMaterialResourceFilePath() const {
-		return mMaterialResourceFilePath.get_observable()
-			.observe_on(rxcpp::observe_on_event_loop())
-			.debounce(std::chrono::milliseconds(500));
-	}
-
-	rxcpp::observable<Gfx::Sprite> SpriteEditorTool::observeSprite() const {
-		return mSprite.get_observable()
-			.observe_on(rxcpp::observe_on_event_loop())
-			.debounce(std::chrono::milliseconds(500));
-	}
-
 	void SpriteEditorTool::loadMaterialResource(entt::registry& registry, std::string materialResourceFilePath) const {
-		auto& renderObject{ registry.get<Gfx::RenderObject>(mSpriteObjectRoot) };
+		auto& renderObject{ registry.get_or_emplace<Gfx::RenderObject>(mSpriteObjectRoot) };
 		renderObject.materialResource = Core::ResourceLoadRequest::create<Core::TypeLoader>(
 			registry, std::move(materialResourceFilePath),
 			std::make_shared<Core::JsonTypeLoaderAdapter<Gfx::MaterialDescriptor>>());
 	}
 
-	void SpriteEditorTool::setSprite(entt::registry& registry, Gfx::Sprite sprite) const {
-		registry.get<Gfx::SpriteObject>(mSpriteObjectRoot).spriteResource = std::move(sprite);
+	void SpriteEditorTool::setSprite(entt::registry& registry, Gfx::SpriteDescriptor sprite) const {
+		registry.get_or_emplace<Gfx::SpriteObject>(mSpriteObjectRoot).spriteResource = Gfx::Sprite{ std::move(sprite) };
+	}
+
+	void SpriteEditorTool::_printSavedSpriteJSON(entt::registry& registry, const Gfx::SpriteDescriptor& sprite) {
+		using namespace SpriteEditorToolInternal;
+
+		std::string exportedJSON{ Core::save(registry, Core::Any{ sprite }) };
+		Core::logEntry(registry, PrintExportFormatString, exportedJSON);
 	}
 
 } // namespace DevTools
