@@ -2,6 +2,7 @@
 cmake_minimum_required(VERSION 3.31)
 
 find_package(imgui CONFIG REQUIRED)
+find_package(rxcpp CONFIG)
 
 set (devtools-lib-src
         src/devtools/systems/DevToolsSystems.cpp
@@ -24,7 +25,7 @@ add_library(devtools-lib STATIC ${devtools-lib-src} ${devtools-lib-modules})
 
 target_sources(devtools-lib PUBLIC FILE_SET modules TYPE CXX_MODULES FILES ${devtools-lib-modules})
 target_compile_features(devtools-lib PUBLIC cxx_std_23)
-target_link_libraries(devtools-lib PUBLIC core-lib gfx-lib input-lib audio-lib imgui::imgui)
+target_link_libraries(devtools-lib PUBLIC core-lib gfx-lib input-lib audio-lib imgui::imgui rxcpp)
 target_include_directories(devtools-lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/deps/)
 
 set (devtools-lib-fonts-src

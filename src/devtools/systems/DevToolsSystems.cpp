@@ -412,7 +412,7 @@ namespace DevTools {
 
 			auto toolUpdateView = registry.view<Tool>();
 
-			registry.view<ImGuiContext>().each([&registry, &toolUpdateView](ImGuiContext& imguiContext) {
+			registry.view<ImGuiContext>().each([this, &toolUpdateView](ImGuiContext& imguiContext) {
 				ImGuiIO& io = ImGui::GetIO();
 				io.DisplaySize.x = 1360;
 				io.DisplaySize.y = 768;
@@ -423,27 +423,41 @@ namespace DevTools {
 				if (ImGui::Begin("DevTools", &open, ImGuiWindowFlags_MenuBar)) {
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("Tools")) {
-							toolUpdateView.each([&registry](Tool& tool) {
+							toolUpdateView.each([this](Tool& tool) {
 								if (ImGui::MenuItem(tool.toolName.c_str())) {
 									tool.isOpen = true;
+									tool.isOpenFunctionCalled = false;
 								}
 							});
 
 							ImGui::EndMenu();
 						}
 
-						toolUpdateView.each([&registry](Tool& tool) {
+						toolUpdateView.each([this](Tool& tool) {
 							if (!tool.isOpen) {
+								if (tool.isOpenFunctionCalled) {
+									tool.closeFunction(mRegistry, tool);
+									tool.isOpenFunctionCalled = false;
+								}
 								return;
 							}
 
-							bool minimized = !ImGui::Begin(tool.toolName.c_str(), &tool.isOpen);
-							if (!minimized) {
-								tool.updateFunction(registry, tool);
+
+
+							bool wasMinimized = tool.isMinimized;
+							tool.isMinimized = !ImGui::Begin(tool.toolName.c_str(), &tool.isOpen);
+							if (!tool.isMinimized && !tool.isOpenFunctionCalled) {
+								tool.openFunction(mRegistry, tool);
+								tool.isOpenFunctionCalled = true;
 							}
 
-							if (!tool.isOpen || minimized) {
-								tool.closeFunction(registry, tool);
+							if (!tool.isMinimized) {
+								tool.updateFunction(mRegistry, tool);
+							}
+
+							if ((!tool.isOpen || tool.isMinimized) && tool.isOpenFunctionCalled) {
+								tool.closeFunction(mRegistry, tool);
+								tool.isOpenFunctionCalled = false;
 							}
 
 							ImGui::End();
