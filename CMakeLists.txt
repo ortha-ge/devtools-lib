@@ -17,6 +17,7 @@ set (devtools-lib-src
         src/devtools/systems/DevToolsSystems.cpp
         src/devtools/tools/LogViewerTool.cpp
         src/devtools/tools/MaterialEditorTool.cpp
+        src/devtools/tools/ResourceCacheTool.cpp
         src/devtools/tools/SpriteEditorTool.cpp
 )
 
@@ -27,6 +28,7 @@ set (devtools-lib-modules
         src/devtools/systems/DevToolsSystems.cppm
         src/devtools/tools/LogViewerTool.cppm
         src/devtools/tools/MaterialEditorTool.cppm
+        src/devtools/tools/ResourceCacheTool.cppm
         src/devtools/tools/SpriteEditorTool.cppm
 )
 

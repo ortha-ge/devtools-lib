@@ -615,6 +615,7 @@ namespace DevTools {
 
 	void DevToolsSystems::_setupTools(entt::registry& registry) {
 		mLogViewerTool.setup(registry);
+		mResourceCacheTool.setup(registry);
 		mMaterialEditorTool.setup(registry);
 		mSpriteEditorTool.setup(registry);
 	}

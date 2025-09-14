@@ -9,6 +9,7 @@ import Core.EnTTRegistry;
 import Core.Scheduler;
 import DevTools.LogViewerTool;
 import DevTools.MaterialEditorTool;
+import DevTools.ResourceCacheTool;
 import DevTools.SpriteEditorTool;
 import Gfx.Systems;
 
@@ -35,6 +36,7 @@ export namespace DevTools {
 		entt::entity mRenderCallbackEntity{ entt::null };
 		LogViewerTool mLogViewerTool;
 		MaterialEditorTool mMaterialEditorTool;
+		ResourceCacheTool mResourceCacheTool;
 		SpriteEditorTool mSpriteEditorTool;
 
 	};
