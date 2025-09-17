@@ -28,6 +28,7 @@ module;
 
 module DevTools.Systems;
 
+import Core.Log;
 import DevTools.ImGuiContext;
 import DevTools.Tool;
 import Gfx.BGFXContext;
@@ -435,7 +436,7 @@ namespace DevTools {
 
 						toolUpdateView.each([this](Tool& tool) {
 							if (!tool.isOpen) {
-								if (tool.isOpenFunctionCalled) {
+								if (tool.isOpenFunctionCalled && tool.closeFunction) {
 									tool.closeFunction(mRegistry, tool);
 									tool.isOpenFunctionCalled = false;
 								}
@@ -446,16 +447,16 @@ namespace DevTools {
 
 							bool wasMinimized = tool.isMinimized;
 							tool.isMinimized = !ImGui::Begin(tool.toolName.c_str(), &tool.isOpen);
-							if (!tool.isMinimized && !tool.isOpenFunctionCalled) {
+							if (!tool.isMinimized && !tool.isOpenFunctionCalled && tool.openFunction) {
 								tool.openFunction(mRegistry, tool);
 								tool.isOpenFunctionCalled = true;
 							}
 
-							if (!tool.isMinimized) {
+							if (!tool.isMinimized && tool.updateFunction) {
 								tool.updateFunction(mRegistry, tool);
 							}
 
-							if ((!tool.isOpen || tool.isMinimized) && tool.isOpenFunctionCalled) {
+							if ((!tool.isOpen || tool.isMinimized) && tool.isOpenFunctionCalled && tool.closeFunction) {
 								tool.closeFunction(mRegistry, tool);
 								tool.isOpenFunctionCalled = false;
 							}
@@ -614,9 +615,13 @@ namespace DevTools {
 	}
 
 	void DevToolsSystems::_setupTools(entt::registry& registry) {
-		mLogViewerTool.setup(registry);
-		mResourceCacheTool.setup(registry);
+		Core::logEntry(registry, "Detecting thread support...");
+#if !defined(__EMSCRIPTEN__) || defined(__EMSCRIPTEN_PTHREADS__)
+		Core::logEntry(registry, "Thread support found!");
 		mMaterialEditorTool.setup(registry);
 		mSpriteEditorTool.setup(registry);
+#endif
+		mLogViewerTool.setup(registry);
+		mResourceCacheTool.setup(registry);
 	}
 } // namespace DevTools
