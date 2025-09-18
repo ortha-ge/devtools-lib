@@ -4,14 +4,16 @@ module;
 
 export module DevTools.ResourceCacheTool;
 
+import Core.EnTTRegistry;
+
 export namespace DevTools {
 
 	class ResourceCacheTool {
 	public:
 
-		ResourceCacheTool();
+		ResourceCacheTool(Core::EnTTRegistry&);
 
-		void setup(entt::registry&);
+		void setupTool(entt::registry&);
 
 		void open(entt::registry&);
 		void update(entt::registry&);

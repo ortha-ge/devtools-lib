@@ -37,9 +37,11 @@ namespace DevTools::SpriteEditorToolInternal {
 
 namespace DevTools {
 
-	SpriteEditorTool::SpriteEditorTool()
+	SpriteEditorTool::SpriteEditorTool(Core::EnTTRegistry& registry)
 		: mMaterialResourceFilePath("")
 		, mSprite(Gfx::SpriteDescriptor{}) {
+
+		setupTool(registry);
 	}
 
 	void SpriteEditorTool::registerSubscriptions(entt::registry& registry) {
@@ -65,7 +67,7 @@ namespace DevTools {
 		mSubscriptions.clear();
 	}
 
-	void SpriteEditorTool::setup(entt::registry& registry) {
+	void SpriteEditorTool::setupTool(entt::registry& registry) {
 		const entt::entity testTool{ registry.create() };
 		registry.emplace<Tool>(testTool, "Sprite Editor",
 			[this](entt::registry& registry, Tool&) { open(registry); },

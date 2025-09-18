@@ -12,11 +12,11 @@ import DevTools.Tool;
 
 namespace DevTools {
 
-	ResourceCacheTool::ResourceCacheTool() {
-
+	ResourceCacheTool::ResourceCacheTool(Core::EnTTRegistry& registry) {
+		setupTool(registry);
 	}
 
-	void ResourceCacheTool::setup(entt::registry& registry) {
+	void ResourceCacheTool::setupTool(entt::registry& registry) {
 		const entt::entity tool{ registry.create() };
 		registry.emplace<Tool>(tool, "Resource Cache",
 			[this](entt::registry& registry, Tool&) { open(registry); },

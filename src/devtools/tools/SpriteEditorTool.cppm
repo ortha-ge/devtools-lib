@@ -9,6 +9,7 @@ module;
 
 export module DevTools.SpriteEditorTool;
 
+import Core.EnTTRegistry;
 import Core.ResourceHandle;
 import Gfx.SpriteDescriptor;
 
@@ -17,9 +18,9 @@ export namespace DevTools {
 	class SpriteEditorTool {
 	public:
 
-		SpriteEditorTool();
+		SpriteEditorTool(Core::EnTTRegistry&);
 
-		void setup(entt::registry&);
+		void setupTool(entt::registry&);
 
 		void open(entt::registry&);
 		void update(entt::registry&);

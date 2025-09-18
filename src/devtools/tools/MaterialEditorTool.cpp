@@ -36,9 +36,10 @@ namespace DevTools::MaterialEditorToolInternal {
 
 namespace DevTools {
 
-	MaterialEditorTool::MaterialEditorTool()
+	MaterialEditorTool::MaterialEditorTool(Core::EnTTRegistry& registry)
 		: mMaterialDescriptor(Gfx::MaterialDescriptor{}){
 
+		setupTool(registry);
 	}
 
 	void MaterialEditorTool::registerSubscriptions(entt::registry& registry) {
@@ -56,7 +57,7 @@ namespace DevTools {
 		mSubscriptions.clear();
 	}
 
-	void MaterialEditorTool::setup(entt::registry& registry) {
+	void MaterialEditorTool::setupTool(entt::registry& registry) {
 		const entt::entity testTool{ registry.create() };
 		registry.emplace<Tool>(testTool, "Material Editor",
 			[this](entt::registry& registry, Tool&) { open(registry); },

@@ -14,6 +14,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(RPP)
 
 set (devtools-lib-src
+        src/devtools/services/DevToolsSystemService.cpp
         src/devtools/systems/DevToolsSystems.cpp
         src/devtools/tools/LogViewerTool.cpp
         src/devtools/tools/MaterialEditorTool.cpp
@@ -25,6 +26,10 @@ set (devtools-lib-modules
         src/devtools/ImGuiContext.cppm
         src/devtools/Tool.cppm
         src/devtools/services/DevToolsSystemService.cppm
+        src/devtools/services/LogViewerToolService.cppm
+        src/devtools/services/MaterialEditorToolService.cppm
+        src/devtools/services/ResourceCacheToolService.cppm
+        src/devtools/services/SpriteEditorToolService.cppm
         src/devtools/systems/DevToolsSystems.cppm
         src/devtools/tools/LogViewerTool.cppm
         src/devtools/tools/MaterialEditorTool.cppm

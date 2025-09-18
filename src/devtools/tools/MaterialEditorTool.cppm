@@ -1,7 +1,5 @@
 module;
 
-#include <memory>
-
 #include <entt/entity/entity.hpp>
 #include <entt/fwd.hpp>
 #include <glm/vec3.hpp>
@@ -9,6 +7,7 @@ module;
 
 export module DevTools.MaterialEditorTool;
 
+import Core.EnTTRegistry;
 import Core.ResourceHandle;
 import Gfx.MaterialDescriptor;
 
@@ -17,9 +16,9 @@ export namespace DevTools {
 	class MaterialEditorTool {
 	public:
 
-		MaterialEditorTool();
+		MaterialEditorTool(Core::EnTTRegistry&);
 
-		void setup(entt::registry& registry);
+		void setupTool(entt::registry&);
 
 		void open(entt::registry&);
 		void update(entt::registry&);

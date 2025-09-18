@@ -301,7 +301,7 @@ namespace DevTools {
 		return std::nullopt;
 	}
 
-	DevToolsSystems::DevToolsSystems(Core::EnTTRegistry& registry, Core::Scheduler& scheduler, Gfx::GfxSystems&)
+	DevToolsSystems::DevToolsSystems(Core::EnTTRegistry& registry, Core::Scheduler& scheduler)
 		: mRegistry{ registry }
 		, mScheduler{ scheduler } {
 		IMGUI_CHECKVERSION();
@@ -473,8 +473,6 @@ namespace DevTools {
 				ImGui::Render();
 			});
 		});
-
-		_setupTools(mRegistry);
 	}
 
 	DevToolsSystems::~DevToolsSystems() {
@@ -612,16 +610,5 @@ namespace DevTools {
 				}
 			}
 		});
-	}
-
-	void DevToolsSystems::_setupTools(entt::registry& registry) {
-		Core::logEntry(registry, "Detecting thread support...");
-#if !defined(__EMSCRIPTEN__) || defined(__EMSCRIPTEN_PTHREADS__)
-		Core::logEntry(registry, "Thread support found!");
-		mMaterialEditorTool.setup(registry);
-		mSpriteEditorTool.setup(registry);
-#endif
-		mLogViewerTool.setup(registry);
-		mResourceCacheTool.setup(registry);
 	}
 } // namespace DevTools

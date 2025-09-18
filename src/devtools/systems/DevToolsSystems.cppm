@@ -7,17 +7,13 @@ export module DevTools.Systems;
 
 import Core.EnTTRegistry;
 import Core.Scheduler;
-import DevTools.LogViewerTool;
-import DevTools.MaterialEditorTool;
-import DevTools.ResourceCacheTool;
-import DevTools.SpriteEditorTool;
 import Gfx.Systems;
 
 export namespace DevTools {
 
 	class DevToolsSystems {
 	public:
-		DevToolsSystems(Core::EnTTRegistry&, Core::Scheduler&, Gfx::GfxSystems&);
+		DevToolsSystems(Core::EnTTRegistry&, Core::Scheduler&);
 		~DevToolsSystems();
 
 		DevToolsSystems(DevToolsSystems&&) = delete;
@@ -28,16 +24,11 @@ export namespace DevTools {
 
 	private:
 		void _renderImGui(entt::registry&);
-		void _setupTools(entt::registry&);
 
 		Core::EnTTRegistry& mRegistry;
 		Core::Scheduler& mScheduler;
 		Core::TaskHandle mTickHandle{};
 		entt::entity mRenderCallbackEntity{ entt::null };
-		LogViewerTool mLogViewerTool;
-		MaterialEditorTool mMaterialEditorTool;
-		ResourceCacheTool mResourceCacheTool;
-		SpriteEditorTool mSpriteEditorTool;
 
 	};
 
