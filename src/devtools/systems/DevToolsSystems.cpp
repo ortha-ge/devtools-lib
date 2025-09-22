@@ -308,6 +308,7 @@ namespace DevTools {
 		ImGui::CreateContext();
 
 		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		ImFontConfig config;
 		config.FontDataOwnedByAtlas = false;
@@ -411,64 +412,26 @@ namespace DevTools {
 						callbackEntity, [this](entt::registry& registry) { _renderImGui(registry); });
 				});
 
-			auto toolUpdateView = registry.view<Tool>();
+			registry.view<Input::KeyboardState>()
+				.each([this](const Input::KeyboardState& keyboardState) {
+					if (Input::isKeyPressed(keyboardState, Input::Key::LeftControl) &&
+						Input::isKeyPressed(keyboardState, Input::Key::GraveAccent)) {
+						mIsEnabled = !mIsEnabled;
+					}
+				});
 
-			registry.view<ImGuiContext>().each([this, &toolUpdateView](ImGuiContext& imguiContext) {
+
+
+			registry.view<ImGuiContext>().each([this](ImGuiContext& imguiContext) {
 				ImGuiIO& io = ImGui::GetIO();
 				io.DisplaySize.x = 1360;
 				io.DisplaySize.y = 768;
 
 				ImGui::NewFrame();
 
-				bool open = true;
-				if (ImGui::Begin("DevTools", &open, ImGuiWindowFlags_MenuBar)) {
-					if (ImGui::BeginMenuBar()) {
-						if (ImGui::BeginMenu("Tools")) {
-							toolUpdateView.each([this](Tool& tool) {
-								if (ImGui::MenuItem(tool.toolName.c_str())) {
-									tool.isOpen = true;
-									tool.isOpenFunctionCalled = false;
-								}
-							});
-
-							ImGui::EndMenu();
-						}
-
-						toolUpdateView.each([this](Tool& tool) {
-							if (!tool.isOpen) {
-								if (tool.isOpenFunctionCalled && tool.closeFunction) {
-									tool.closeFunction(mRegistry, tool);
-									tool.isOpenFunctionCalled = false;
-								}
-								return;
-							}
-
-
-
-							bool wasMinimized = tool.isMinimized;
-							tool.isMinimized = !ImGui::Begin(tool.toolName.c_str(), &tool.isOpen);
-							if (!tool.isMinimized && !tool.isOpenFunctionCalled && tool.openFunction) {
-								tool.openFunction(mRegistry, tool);
-								tool.isOpenFunctionCalled = true;
-							}
-
-							if (!tool.isMinimized && tool.updateFunction) {
-								tool.updateFunction(mRegistry, tool);
-							}
-
-							if ((!tool.isOpen || tool.isMinimized) && tool.isOpenFunctionCalled && tool.closeFunction) {
-								tool.closeFunction(mRegistry, tool);
-								tool.isOpenFunctionCalled = false;
-							}
-
-							ImGui::End();
-						});
-
-						ImGui::EndMenuBar();
-					}
+				if (mIsEnabled) {
+					drawDevToolsImGui(mRegistry);
 				}
-
-				ImGui::End();
 
 				ImGui::Render();
 			});
@@ -495,11 +458,63 @@ namespace DevTools {
 		ImGui::DestroyContext();
 	}
 
+	void DevToolsSystems::drawDevToolsImGui(entt::registry& registry) {
+		auto toolUpdateView = registry.view<Tool>();
+		if (ImGui::BeginMainMenuBar()) {
+			if (ImGui::MenuItem("Close")) {
+				mIsEnabled = false;
+			}
+
+			if (ImGui::BeginMenu("Tools")) {
+				toolUpdateView.each([this](Tool& tool) {
+					if (ImGui::MenuItem(tool.toolName.c_str())) {
+						tool.isOpen = true;
+						tool.isOpenFunctionCalled = false;
+					}
+				});
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMainMenuBar();
+		}
+
+		toolUpdateView.each([this](Tool& tool) {
+			if (!tool.isOpen) {
+				if (tool.isOpenFunctionCalled && tool.closeFunction) {
+					tool.closeFunction(mRegistry, tool);
+					tool.isOpenFunctionCalled = false;
+				}
+				return;
+			}
+
+			tool.isMinimized = !ImGui::Begin(tool.toolName.c_str(), &tool.isOpen);
+			if (!tool.isMinimized && !tool.isOpenFunctionCalled && tool.openFunction) {
+				tool.openFunction(mRegistry, tool);
+				tool.isOpenFunctionCalled = true;
+			}
+
+			if (!tool.isMinimized && tool.updateFunction) {
+				tool.updateFunction(mRegistry, tool);
+			}
+
+			if ((!tool.isOpen || tool.isMinimized) && tool.isOpenFunctionCalled && tool.closeFunction) {
+				tool.closeFunction(mRegistry, tool);
+				tool.isOpenFunctionCalled = false;
+			}
+
+			ImGui::End();
+		});
+	}
+
 	void DevToolsSystems::_renderImGui(entt::registry& registry) {
 		const bgfx::ViewId viewId{ 255 };
 		registry.view<ImGuiContext>().each([](const ImGuiContext& imGuiContext) {
 			const bgfx::Caps* caps = bgfx::getCaps();
 			const ImDrawData* drawData = ImGui::GetDrawData();
+			if (!drawData) {
+				return;
+			}
 
 			int32_t dispWidth = int32_t(drawData->DisplaySize.x * drawData->FramebufferScale.x);
 			int32_t dispHeight = int32_t(drawData->DisplaySize.y * drawData->FramebufferScale.y);

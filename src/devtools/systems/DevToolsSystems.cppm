@@ -23,12 +23,15 @@ export namespace DevTools {
 		DevToolsSystems& operator=(const DevToolsSystems&) = delete;
 
 	private:
+
+		void drawDevToolsImGui(entt::registry&);
 		void _renderImGui(entt::registry&);
 
 		Core::EnTTRegistry& mRegistry;
 		Core::Scheduler& mScheduler;
 		Core::TaskHandle mTickHandle{};
 		entt::entity mRenderCallbackEntity{ entt::null };
+		bool mIsEnabled{ false };
 
 	};
 
