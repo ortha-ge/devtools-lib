@@ -2,21 +2,25 @@ module;
 
 #include <entt/fwd.hpp>
 
-export module DevTools.LogViewerTool;
+export module DevTools.NodeTool;
 
 import Core.EnTTRegistry;
 
 export namespace DevTools {
 
-	class LogViewerTool {
+	class NodeTool {
 	public:
-		LogViewerTool(Core::EnTTRegistry& registry);
+
+		NodeTool(Core::EnTTRegistry&);
 
 		void setupTool(entt::registry&);
 
 		void onOpen(entt::registry&);
 		void onUpdate(entt::registry&);
 		void onClose(entt::registry&);
+
+	private:
+
 	};
 
 } // namespace DevTools
