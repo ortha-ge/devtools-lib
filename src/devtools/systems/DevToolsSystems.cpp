@@ -33,6 +33,7 @@ import DevTools.ImGuiContext;
 import DevTools.Tool;
 import Gfx.BGFXContext;
 import Gfx.BGFXDrawCallback;
+import Input.KeyboardEvent;
 import Input.KeyboardState;
 import Input.MouseState;
 
@@ -412,10 +413,10 @@ namespace DevTools {
 						callbackEntity, [this](entt::registry& registry) { _renderImGui(registry); });
 				});
 
-			registry.view<Input::KeyboardState>()
-				.each([this](const Input::KeyboardState& keyboardState) {
-					if (Input::isKeyPressed(keyboardState, Input::Key::LeftControl) &&
-						Input::isKeyPressed(keyboardState, Input::Key::GraveAccent)) {
+			registry.view<Input::KeyboardEvent>()
+				.each([this](const Input::KeyboardEvent& keyboardEvent) {
+					if (keyboardEvent.key == Input::Key::GraveAccent &&
+						keyboardEvent.eventType == Input::InputEventType::Pressed) {
 						mIsEnabled = !mIsEnabled;
 					}
 				});
