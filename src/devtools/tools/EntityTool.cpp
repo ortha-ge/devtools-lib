@@ -75,22 +75,50 @@ namespace DevTools::EntityToolInternal {
 
 	void renderComponentProperty(const Core::ReflectionContext& reflectionContext, const Core::ClassProperty& property, void* instance) {
 		if (reflectionContext.hasClass(property.getTypeId())) {
-			if (ImGui::CollapsingHeader(property.getName().c_str())) {
-				ImGui::PushID(property.getName().c_str());
-				void* propertyInstance = property.getRawPointer(instance);
+			ImGui::SeparatorText(property.getName().c_str());
+			ImGui::PushID(property.getName().c_str());
+			void* propertyInstance = property.getRawPointer(instance);
 
-				const auto& classReflection{ reflectionContext.getClass(property.getTypeId()) };
-				for (auto&& childProperty : classReflection.getProperties()) {
-					renderComponentProperty(reflectionContext, childProperty, propertyInstance);
-				}
-				ImGui::PopID();
+			const auto& classReflection{ reflectionContext.getClass(property.getTypeId()) };
+			for (auto&& childProperty : classReflection.getProperties()) {
+				renderComponentProperty(reflectionContext, childProperty, propertyInstance);
 			}
+			ImGui::PopID();
 		} else if (reflectionContext.hasEnum(property.getTypeId())) {
 
 		} else if (reflectionContext.hasBasicType(property.getTypeId())){
 			tryRenderBasicComponentProperty(property, instance);
 		} else {
 			return;
+		}
+	}
+
+	void renderEntityTab(entt::registry& registry, const entt::entity entity) {
+		using namespace Core;
+
+		std::string entityName{ "Unnamed Entity" };
+		if (registry.all_of<NodeHandle>(entity)) {
+			entityName = registry.get<NodeHandle>(entity)->getName();
+		}
+
+		if (ImGui::BeginTabItem(entityName.c_str())) {
+			const auto& reflectionContext{ getCurrentReflectionContext() };
+			reflectionContext.forEachClass([&reflectionContext, &registry, entity](const ClassReflection& classReflection) {
+				if (classReflection.hasAttribute<EnTTComponentAttribute>()) {
+					const auto& enttAnnotation{ classReflection.getAttribute<EnTTComponentAttribute>() };
+					if (void* componentInstance = enttAnnotation.getComponent(registry, entity)) {
+						if (ImGui::CollapsingHeader(classReflection.getName().c_str())) {
+							ImGui::PushID(classReflection.getName().c_str());
+							for (auto&& property : classReflection.getProperties()) {
+								renderComponentProperty(reflectionContext, property, componentInstance);
+							}
+							ImGui::PopID();
+						}
+					}
+				}
+			});
+
+			ImGui::EndTabItem();
 		}
 	}
 
@@ -126,22 +154,13 @@ namespace DevTools {
 			logEntry(registry, "Currently only a single selected entity is supported.");
 		}
 
-		selectedEntityView.each([&registry](const entt::entity entity) {
-			const auto& reflectionContext{ getCurrentReflectionContext() };
-			reflectionContext.forEachClass([&reflectionContext, &registry, entity](const ClassReflection& classReflection) {
-				if (classReflection.hasAttribute<EnTTComponentAttribute>()) {
-					const auto& enttAnnotation{ classReflection.getAttribute<EnTTComponentAttribute>() };
-					if (void* componentInstance = enttAnnotation.getComponent(registry, entity))
-						if (ImGui::CollapsingHeader(classReflection.getName().c_str())) {
-							ImGui::PushID(classReflection.getName().c_str());
-							for (auto&& property : classReflection.getProperties()) {
-								renderComponentProperty(reflectionContext, property, componentInstance);
-							}
-							ImGui::PopID();
-						}
-					}
-				});
-		});
+		if (ImGui::BeginTabBar("Entities")) {
+			selectedEntityView.each([&registry](const entt::entity entity) {
+				renderEntityTab(registry, entity);
+			});
+
+			ImGui::EndTabBar();
+		}
 	}
 
 	void EntityTool::onClose(entt::registry&) {
