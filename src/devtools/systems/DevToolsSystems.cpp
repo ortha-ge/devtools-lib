@@ -9,6 +9,7 @@ module;
 #include <bx/math.h>
 #include <entt/entt.hpp>
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome6.h>
 #include <IconFontCppHeaders/IconsFontAwesome6.h_fa-regular-400.ttf.h>
@@ -462,8 +463,16 @@ namespace DevTools {
 	void DevToolsSystems::drawDevToolsImGui(entt::registry& registry) {
 		auto toolUpdateView = registry.view<Tool>();
 		if (ImGui::BeginMainMenuBar()) {
-			if (ImGui::MenuItem("Close")) {
-				mIsEnabled = false;
+			if (ImGui::BeginMenu("Main")) {
+				if (ImGui::Button("Close")) {
+					mIsEnabled = false;
+				}
+
+				if (ImGui::Button("Reset Layout")) {
+					ImGui::ClearIniSettings();
+				}
+
+				ImGui::EndMenu();
 			}
 
 			if (ImGui::BeginMenu("Tools")) {
