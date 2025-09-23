@@ -7,7 +7,7 @@ module;
 module DevTools.EntityTool;
 
 import Core.ClassReflection;
-import Core.EnTTClassAnnotation;
+import Core.EnTTComponentAttribute;
 import Core.Log;
 import Core.Node;
 import Core.ReflectionContext;
@@ -129,8 +129,8 @@ namespace DevTools {
 		selectedEntityView.each([&registry](const entt::entity entity) {
 			const auto& reflectionContext{ getCurrentReflectionContext() };
 			reflectionContext.forEachClass([&reflectionContext, &registry, entity](const ClassReflection& classReflection) {
-				if (classReflection.hasAnnotation<EnTTClassAnnotation>()) {
-					const auto& enttAnnotation{ classReflection.getAnnotation<EnTTClassAnnotation>() };
+				if (classReflection.hasAttribute<EnTTComponentAttribute>()) {
+					const auto& enttAnnotation{ classReflection.getAttribute<EnTTComponentAttribute>() };
 					if (void* componentInstance = enttAnnotation.getComponent(registry, entity))
 						if (ImGui::CollapsingHeader(classReflection.getName().c_str())) {
 							ImGui::PushID(classReflection.getName().c_str());
