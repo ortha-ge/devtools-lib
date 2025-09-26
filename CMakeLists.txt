@@ -25,7 +25,6 @@ set (devtools-lib-src
 )
 
 set (devtools-lib-modules
-        src/devtools/ImGuiContext.cppm
         src/devtools/SelectedEntity.cppm
         src/devtools/Tool.cppm
         src/devtools/services/DevToolsSystemService.cppm

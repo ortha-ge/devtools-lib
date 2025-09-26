@@ -33,6 +33,7 @@ export namespace DevTools {
 
 		void _printExportedMaterialJSON(entt::registry&, const Gfx::MaterialDescriptor&);
 
+		entt::entity mRenderTexture{ entt::null };
 		entt::entity mMaterialRenderObjectRoot{ entt::null };
 		rpp::subjects::behavior_subject<Gfx::MaterialDescriptor> mMaterialDescriptor;
 

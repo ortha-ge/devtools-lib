@@ -118,6 +118,12 @@ namespace DevTools::EntityToolInternal {
 				}
 			});
 
+			ImGui::BeginDisabled();
+			if (ImGui::Button("Add Component")) {
+
+			}
+			ImGui::EndDisabled();
+
 			ImGui::EndTabItem();
 		}
 	}

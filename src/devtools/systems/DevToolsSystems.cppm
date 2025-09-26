@@ -6,6 +6,7 @@ module;
 export module DevTools.Systems;
 
 import Core.EnTTRegistry;
+import Core.ResourceHandle;
 import Core.Scheduler;
 import Gfx.Systems;
 
@@ -24,13 +25,18 @@ export namespace DevTools {
 
 	private:
 
+		static entt::entity createFontTexture(entt::registry&);
 		void drawDevToolsImGui(entt::registry&);
 		void _renderImGui(entt::registry&);
 
 		Core::EnTTRegistry& mRegistry;
 		Core::Scheduler& mScheduler;
 		Core::TaskHandle mTickHandle{};
-		entt::entity mRenderCallbackEntity{ entt::null };
+		entt::entity mFontImage{ entt::null };
+
+		Core::ResourceHandlePtr mShaderProgram;
+		Core::ResourceHandlePtr mImageShaderProgram;
+
 		bool mIsEnabled{ false };
 
 	};

@@ -5,9 +5,10 @@ module;
 #include <utility>
 
 #include <bgfx/bgfx.h>
-#include <bgfx/embedded_shader.h>
-#include <bx/math.h>
+#include <bimg/bimg.h>
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -19,21 +20,28 @@ module;
 #include <devtools/roboto_regular.ttf.h>
 #include <devtools/robotomono_regular.ttf.h>
 
-#include <devtools/fs_imgui_image.bin.h>
-#include <devtools/fs_ocornut_imgui.bin.h>
-#include <devtools/vs_imgui_image.bin.h>
-#include <devtools/vs_ocornut_imgui.bin.h>
-
 #define IMGUI_FLAGS_NONE UINT8_C(0x00)
 #define IMGUI_FLAGS_ALPHA_BLEND UINT8_C(0x01)
 
 module DevTools.Systems;
 
+import Core.Any;
+import Core.JsonTypeLoaderAdapter;
 import Core.Log;
-import DevTools.ImGuiContext;
+import Core.RawDataResource;
+import Core.ResourceHandleUtils;
+import Core.ResourceLoadRequest;
+import Core.Spatial;
+import Core.TypeLoader;
 import DevTools.Tool;
-import Gfx.BGFXContext;
-import Gfx.BGFXDrawCallback;
+import Gfx.Image;
+import Gfx.IndexBuffer;
+import Gfx.Reflection.ShaderProgramDescriptor;
+import Gfx.RenderCommand;
+import Gfx.ShaderProgram;
+import Gfx.ShaderProgramDescriptor;
+import Gfx.VertexBuffer;
+import Gfx.Viewport;
 import Input.KeyboardEvent;
 import Input.KeyboardState;
 import Input.MouseState;
@@ -49,13 +57,6 @@ namespace DevTools {
 		{ s_kenney_icon_font_ttf, sizeof(s_kenney_icon_font_ttf), { ICON_MIN_KI, ICON_MAX_KI, 0 } },
 		{ s_fa_regular_400_ttf, sizeof(s_fa_regular_400_ttf), { ICON_MIN_FA, ICON_MAX_FA, 0 } },
 	};
-
-	static const bgfx::EmbeddedShader s_embeddedShaders[] = { BGFX_EMBEDDED_SHADER(vs_ocornut_imgui),
-															  BGFX_EMBEDDED_SHADER(fs_ocornut_imgui),
-															  BGFX_EMBEDDED_SHADER(vs_imgui_image),
-															  BGFX_EMBEDDED_SHADER(fs_imgui_image),
-
-															  BGFX_EMBEDDED_SHADER_END() };
 
 	std::optional<ImGuiKey> getImGuiKey(Input::Key key) {
 		switch (key) {
@@ -306,6 +307,9 @@ namespace DevTools {
 	DevToolsSystems::DevToolsSystems(Core::EnTTRegistry& registry, Core::Scheduler& scheduler)
 		: mRegistry{ registry }
 		, mScheduler{ scheduler } {
+		using namespace Core;
+		using namespace Gfx;
+
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 
@@ -333,6 +337,11 @@ namespace DevTools {
 			io.Fonts->AddFontFromMemoryTTF(
 				const_cast<uint8_t*>(frm.data), static_cast<int>(frm.size), fontSize - 3.0f, &config, frm.ranges);
 		}
+
+		auto shaderProgramLoaderAdapter = std::make_shared<JsonTypeLoaderAdapter<ShaderProgramDescriptor>>();
+		mShaderProgram = ResourceLoadRequest::create<TypeLoader>(registry, "assets/shaders/ocornut_imgui.json", shaderProgramLoaderAdapter);
+		mImageShaderProgram = ResourceLoadRequest::create<TypeLoader>(registry, "assets/shaders/ocornut_imgui_image.json", shaderProgramLoaderAdapter);
+		mFontImage = createFontTexture(registry);
 
 		mTickHandle = mScheduler.schedule([this, lastTick = std::chrono::steady_clock::now()] mutable {
 			using DeltaTimeCast = std::chrono::duration<float>;
@@ -371,49 +380,6 @@ namespace DevTools {
 				}
 			});
 
-			registry.view<Gfx::BGFXContext>(entt::exclude<ImGuiContext>)
-				.each([this, &registry](entt::entity entity, const Gfx::BGFXContext&) {
-					bgfx::RendererType::Enum type = bgfx::getRendererType();
-					bgfx::ProgramHandle imguiProgram = bgfx::createProgram(
-						bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_ocornut_imgui"),
-						bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_ocornut_imgui"), true);
-
-					bgfx::UniformHandle imageLodEnabledUniform =
-						bgfx::createUniform("u_imageLodEnabled", bgfx::UniformType::Vec4);
-					bgfx::ProgramHandle imguiImageProgram = bgfx::createProgram(
-						bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_imgui_image"),
-						bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_imgui_image"), true);
-
-					bgfx::VertexLayout layout;
-					layout.begin()
-						.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
-						.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-						.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-						.end();
-
-					bgfx::UniformHandle textureSamplerUniform =
-						bgfx::createUniform("s_tex", bgfx::UniformType::Sampler);
-
-					ImGuiIO& io = ImGui::GetIO();
-					uint8_t* data{};
-					int32_t width{};
-					int32_t height{};
-
-					io.Fonts->GetTexDataAsRGBA32(&data, &width, &height);
-
-					bgfx::TextureHandle fontTextureHandle = bgfx::createTexture2D(
-						(uint16_t) width, (uint16_t) height, false, 1, bgfx::TextureFormat::BGRA8, 0,
-						bgfx::copy(data, width * height * 4));
-
-					registry.emplace<ImGuiContext>(
-						entity, fontTextureHandle, imguiProgram, imguiImageProgram, imageLodEnabledUniform,
-						textureSamplerUniform, layout);
-
-					const entt::entity callbackEntity{ registry.create() };
-					registry.emplace<Gfx::BGFXDrawCallback>(
-						callbackEntity, [this](entt::registry& registry) { _renderImGui(registry); });
-				});
-
 			registry.view<Input::KeyboardEvent>()
 				.each([this](const Input::KeyboardEvent& keyboardEvent) {
 					if (keyboardEvent.key == Input::Key::GraveAccent &&
@@ -422,53 +388,65 @@ namespace DevTools {
 					}
 				});
 
+			io.DisplaySize.x = 1360;
+			io.DisplaySize.y = 768;
 
+			ImGui::NewFrame();
 
-			registry.view<ImGuiContext>().each([this](ImGuiContext& imguiContext) {
-				ImGuiIO& io = ImGui::GetIO();
-				io.DisplaySize.x = 1360;
-				io.DisplaySize.y = 768;
+			if (mIsEnabled) {
+				drawDevToolsImGui(mRegistry);
+			}
 
-				ImGui::NewFrame();
-
-				if (mIsEnabled) {
-					drawDevToolsImGui(mRegistry);
-				}
-
-				ImGui::Render();
-			});
+			ImGui::Render();
+			_renderImGui(mRegistry);
 		});
 	}
 
 	DevToolsSystems::~DevToolsSystems() {
 		entt::registry& registry(mRegistry);
 
-		if (mRenderCallbackEntity != entt::null) {
-			registry.destroy(mRenderCallbackEntity);
+		if (mFontImage != entt::null) {
+			registry.destroy(mFontImage);
+			mFontImage = entt::null;
 		}
-
-		registry.view<ImGuiContext>().each([](ImGuiContext& imguiContext) {
-			bgfx::destroy(imguiContext.fontTextureHandle);
-			bgfx::destroy(imguiContext.textureSamplerUniform);
-			bgfx::destroy(imguiContext.imageLodEnabledUniform);
-			bgfx::destroy(imguiContext.imguiImageProgramHandle);
-			bgfx::destroy(imguiContext.imguiProgramHandle);
-			// bgfx::destroy(imguiContext.layout);
-		});
 
 		mScheduler.unschedule(std::move(mTickHandle));
 		ImGui::DestroyContext();
+	}
+
+	entt::entity DevToolsSystems::createFontTexture(entt::registry& registry) {
+		using namespace Gfx;
+
+		uint8_t* data{};
+		int32_t width{};
+		int32_t height{};
+
+		ImGuiIO& io{ ImGui::GetIO() };
+		io.Fonts->GetTexDataAsRGBA32(&data, &width, &height);
+
+		Image image;
+		image.width = width;
+		image.height = height;
+		image.numMips = 0;
+		image.numLayers = 1;
+		image.format = bimg::TextureFormat::BGRA8;
+		image.image.resize(width * height * 4);
+		memcpy(image.image.data(), data, width * height * 4);
+
+		const entt::entity entity{ registry.create() };
+		registry.emplace<Image>(entity, std::move(image));
+		return entity;
 	}
 
 	void DevToolsSystems::drawDevToolsImGui(entt::registry& registry) {
 		auto toolUpdateView = registry.view<Tool>();
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("Main")) {
-				if (ImGui::Button("Close")) {
+				if (ImGui::MenuItem("Close")) {
 					mIsEnabled = false;
 				}
 
-				if (ImGui::Button("Reset Layout")) {
+				if (ImGui::MenuItem("Reset Layout")) {
 					ImGui::ClearIniSettings();
 				}
 
@@ -518,9 +496,17 @@ namespace DevTools {
 	}
 
 	void DevToolsSystems::_renderImGui(entt::registry& registry) {
-		const bgfx::ViewId viewId{ 255 };
-		registry.view<ImGuiContext>().each([](const ImGuiContext& imGuiContext) {
-			const bgfx::Caps* caps = bgfx::getCaps();
+		using namespace Core;
+		using namespace Gfx;
+
+		registry.view<Viewport>().each([this, &registry](const entt::entity viewportEntity, const Viewport& viewport) {
+			auto&& [shaderProgramEntity, shaderProgram] = getResourceAndEntity<ShaderProgram>(registry, mShaderProgram);
+			auto&& [imageShaderProgramEntity, imageShaderProgram] = getResourceAndEntity<ShaderProgram>(registry, mImageShaderProgram);
+			if (!shaderProgram || !imageShaderProgram) {
+				return;
+			}
+
+			// const bgfx::Caps* caps = bgfx::getCaps();
 			const ImDrawData* drawData = ImGui::GetDrawData();
 			if (!drawData) {
 				return;
@@ -532,46 +518,38 @@ namespace DevTools {
 				return;
 			}
 
-			float ortho[16];
-			float x = drawData->DisplayPos.x;
-			float y = drawData->DisplayPos.y;
-			float width = drawData->DisplaySize.x;
-			float height = drawData->DisplaySize.y;
-
-			bx::mtxOrtho(ortho, x, x + width, y + height, y, 0.0f, 1000.0f, 0.0f, caps->homogeneousDepth);
-			bgfx::setViewTransform(viewId, nullptr, ortho);
-			bgfx::setViewRect(viewId, 0, 0, uint16_t(width), uint16_t(height));
-
 			const ImVec2 clipPos = drawData->DisplayPos; // (0,0) unless using multi-viewports
 			const ImVec2 clipScale = drawData->FramebufferScale;
 			// (1,1) unless using retina display which are often (2,2)
 
+			int sortDepth = 0;
 			for (int i = 0; i < drawData->CmdListsCount; ++i) {
-				bgfx::TransientVertexBuffer tvb;
-				bgfx::TransientIndexBuffer tib;
-
 				const ImDrawList* drawList = drawData->CmdLists[i];
-				uint32_t numVertices = (uint32_t) drawList->VtxBuffer.size();
-				uint32_t numIndices = (uint32_t) drawList->IdxBuffer.size();
 
-				// if (!checkAvailTransientBuffers(numVertices, m_layout, numIndices) )
-				// {
-				// 	// not enough space in transient buffer just quit drawing the rest...
-				// 	break;
-				// }
-				if (bgfx::getAvailTransientVertexBuffer(numVertices, imGuiContext.layout) < numVertices ||
-					bgfx::getAvailTransientIndexBuffer(numIndices, sizeof(ImDrawIdx) == 4) < numIndices) {
-					break;
-				}
+				// Vertex Buffer
+				const auto vertexCount = static_cast<uint32_t>(drawList->VtxBuffer.size());
+				VertexBuffer vertexBuffer;
+				vertexBuffer.vertexLayout = shaderProgramEntity;
+				vertexBuffer.type = VertexBufferType::Transient;
+				vertexBuffer.data.resize(sizeof(ImDrawVert) * vertexCount);
 
-				bgfx::allocTransientVertexBuffer(&tvb, numVertices, imGuiContext.layout);
-				bgfx::allocTransientIndexBuffer(&tib, numIndices, sizeof(ImDrawIdx) == 4);
+				auto* vertexHead = reinterpret_cast<ImDrawVert*>(vertexBuffer.data.data());
+				memcpy(vertexHead, drawList->VtxBuffer.begin(), sizeof(ImDrawVert) * vertexCount);
 
-				ImDrawVert* verts = (ImDrawVert*) tvb.data;
-				bx::memCopy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(ImDrawVert));
+				const entt::entity vertexBufferEntity = registry.create();
+				registry.emplace<VertexBuffer>(vertexBufferEntity, std::move(vertexBuffer));
 
-				ImDrawIdx* indices = (ImDrawIdx*) tib.data;
-				bx::memCopy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(ImDrawIdx));
+				// Index Buffer
+				const auto indexCount = static_cast<uint32_t>(drawList->IdxBuffer.size());
+				IndexBuffer indexBuffer;
+				indexBuffer.type = IndexBufferType::Transient;
+				indexBuffer.data.resize(sizeof(ImDrawIdx) * indexCount);
+
+				auto* indexHead = reinterpret_cast<ImDrawIdx*>(indexBuffer.data.data());
+				memcpy(indexHead, drawList->IdxBuffer.begin(), sizeof(ImDrawIdx) * indexCount);
+
+				const entt::entity indexBufferEntity = registry.create();
+				registry.emplace<IndexBuffer>(indexBufferEntity, std::move(indexBuffer));
 
 				for (const ImDrawCmd *cmd = drawList->CmdBuffer.begin(), *cmdEnd = drawList->CmdBuffer.end();
 					 cmd != cmdEnd; ++cmd) {
@@ -579,35 +557,39 @@ namespace DevTools {
 						continue;
 					}
 
+					RenderCommand renderCommand;
+					renderCommand.vertexBuffer = vertexBufferEntity;
+					renderCommand.indexBuffer = indexBufferEntity;
+					renderCommand.vertexOffset = cmd->VtxOffset;
+					renderCommand.vertexCount = vertexCount;
+					renderCommand.indexOffset = cmd->IdxOffset;
+					renderCommand.indexCount = cmd->ElemCount;
+
+					// TODO: Render state!
 					uint64_t state = 0 | BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA;
 
-					bgfx::TextureHandle texture = imGuiContext.fontTextureHandle;
-					bgfx::ProgramHandle program = imGuiContext.imguiProgramHandle;
+					renderCommand.viewportEntity = viewportEntity;
+					renderCommand.renderPass = 255;
+					renderCommand.sortDepth = sortDepth++;
 
-					if (ImU64(0) != cmd->TextureId) {
-						union {
-							ImTextureID ptr;
+					renderCommand.shaderProgram = shaderProgramEntity;
+					renderCommand.uniformData["s_texColor"] = Any(entt::entity{ mFontImage });
 
-							struct {
-								bgfx::TextureHandle handle;
-								uint8_t flags;
-								uint8_t mip;
-							} s;
-						} _texture = { cmd->TextureId };
+					if (ImTextureID{0} != cmd->TextureId) {
+						const entt::entity textureEntity = static_cast<entt::entity>(cmd->TextureId);
+						renderCommand.uniformData["s_texColor"] = Any(entt::entity{ textureEntity });
 
-						state |= 0 != (IMGUI_FLAGS_ALPHA_BLEND & _texture.s.flags)
-									 ? BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-									 : BGFX_STATE_NONE;
-						texture = _texture.s.handle;
-
-						if (0 != _texture.s.mip) {
-							const float lodEnabled[4] = { float(_texture.s.mip), 1.0f, 0.0f, 0.0f };
-							bgfx::setUniform(imGuiContext.imageLodEnabledUniform, lodEnabled);
-							program = imGuiContext.imguiImageProgramHandle;
+						bool lod = false;
+						if (lod) {
+							renderCommand.shaderProgram = imageShaderProgramEntity;
 						}
+
+						state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 					} else {
 						state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 					}
+
+					renderCommand.bgfxState = state;
 
 					// Project scissor/clipping rectangles into framebuffer space
 					ImVec4 clipRect;
@@ -620,18 +602,18 @@ namespace DevTools {
 						continue;
 					}
 
-					const uint16_t clipX = uint16_t(bx::max(clipRect.x, 0.0f));
-					const uint16_t clipY = uint16_t(bx::max(clipRect.y, 0.0f));
+					const uint16_t clipX = uint16_t(std::max(clipRect.x, 0.0f));
+					const uint16_t clipY = uint16_t(std::max(clipRect.y, 0.0f));
 
-					bgfx::setScissor(
-						clipX, clipY, uint16_t(bx::min(clipRect.z, 65535.0f) - clipX),
-						uint16_t(bx::min(clipRect.w, 65535.0f) - clipY));
+					renderCommand.scissorRect = {
+						clipX,
+						clipY,
+						static_cast<uint16_t>(std::min(clipRect.z, 65535.0f) - clipX),
+						static_cast<uint16_t>(std::min(clipRect.w, 65535.0f) - clipY)
+					};
 
-					bgfx::setState(state);
-					bgfx::setTexture(0, imGuiContext.textureSamplerUniform, texture);
-					bgfx::setVertexBuffer(0, &tvb, cmd->VtxOffset, numVertices);
-					bgfx::setIndexBuffer(&tib, cmd->IdxOffset, cmd->ElemCount);
-					bgfx::submit(viewId, program);
+					const entt::entity renderCommandEntity = registry.create();
+					registry.emplace<RenderCommand>(renderCommandEntity, std::move(renderCommand));
 				}
 			}
 		});

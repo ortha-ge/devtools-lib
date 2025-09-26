@@ -9,6 +9,7 @@ module;
 module DevTools.MaterialEditorTool;
 
 import Core.Any;
+import Core.EnTTNode;
 import Core.JsonTypeLoaderAdapter;
 import Core.JsonTypeSaverAdapter;
 import Core.Log;
@@ -21,12 +22,14 @@ import Core.TypeSaver;
 import DevTools.Tool;
 import Gfx.Camera;
 import Gfx.RenderObject;
+import Gfx.RenderTexture;
 import Gfx.Sprite;
 import Gfx.SpriteObject;
 import Gfx.Material;
 import Gfx.MaterialDescriptor;
 import Gfx.Reflection.MaterialDescriptor;
 import Gfx.Reflection.Sprite;
+import Gfx.Viewport;
 
 namespace DevTools::MaterialEditorToolInternal {
 	constexpr const char* PrintExportFormatString = R"(Material JSON
@@ -67,14 +70,43 @@ namespace DevTools {
 	}
 
 	void MaterialEditorTool::open(entt::registry& registry) {
-		Gfx::Sprite spriteResource {};
+		using namespace Core;
+		using namespace Gfx;
+
+		const entt::entity sceneRoot = createEnTTNode(registry, "MaterialToolRoot");
+
+		// Render Texture
+		mRenderTexture = registry.create();
+
+		RenderTexture renderTexture;
+		renderTexture.width = 256;
+		renderTexture.height = 256;
+		registry.emplace<RenderTexture>(mRenderTexture, renderTexture);
+
+		// Camera + Viewport
+		const entt::entity cameraEntity = registry.create();
+		registry.emplace<Spatial>(cameraEntity);
+
+		Camera camera;
+		camera.sceneRoot = sceneRoot;
+		registry.emplace<Camera>(cameraEntity, camera);
+
+		Viewport viewport;
+		viewport.camera = cameraEntity;
+		viewport.renderTarget = mRenderTexture;
+		viewport.offset = { 0.0f, 0.0f };
+		viewport.dimensions = { 1.0f, 1.0f };
+		registry.emplace<Viewport>(cameraEntity, viewport);
+
+		// Material SpriteObject
+		Sprite spriteResource {};
 		spriteResource.descriptor.frames = {
 			{ { 0.0f, 0.0f }, { 100.0f, 100.0f } }
 		};
 
-		mMaterialRenderObjectRoot = registry.create();
-		registry.emplace<Core::Spatial>(mMaterialRenderObjectRoot, glm::vec3{ 50.0f, 50.0f, 50.0f });
-		registry.emplace<Gfx::SpriteObject>(mMaterialRenderObjectRoot, spriteResource);
+		mMaterialRenderObjectRoot = createChildEnTTNode(registry, sceneRoot, "MaterialPreview");
+		registry.emplace<Spatial>(mMaterialRenderObjectRoot, glm::vec3{ 50.0f, 50.0f, 50.0f });
+		registry.emplace<SpriteObject>(mMaterialRenderObjectRoot, spriteResource);
 
 		registerSubscriptions(registry);
 	}
@@ -85,6 +117,8 @@ namespace DevTools {
 		}
 
 		auto materialDescriptor{ mMaterialDescriptor.get_value() };
+
+		ImGui::Image(static_cast<ImTextureID>(mRenderTexture), ImVec2{ 256, 256});
 
 		ImGui::InputFloat3("Material Render Pos", &mMaterialRenderPos[0]);
 		ImGui::InputText("Shader Program File-Path", &materialDescriptor.shaderProgramFilePath);
