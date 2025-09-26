@@ -4,7 +4,6 @@ module;
 #include <functional>
 #include <utility>
 
-#include <bgfx/bgfx.h>
 #include <bimg/bimg.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -38,6 +37,7 @@ import Gfx.Image;
 import Gfx.IndexBuffer;
 import Gfx.Reflection.ShaderProgramDescriptor;
 import Gfx.RenderCommand;
+import Gfx.RenderState;
 import Gfx.ShaderProgram;
 import Gfx.ShaderProgramDescriptor;
 import Gfx.VertexBuffer;
@@ -565,8 +565,9 @@ namespace DevTools {
 					renderCommand.indexOffset = cmd->IdxOffset;
 					renderCommand.indexCount = cmd->ElemCount;
 
-					// TODO: Render state!
-					uint64_t state = 0 | BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA;
+					RenderState renderState{};
+					renderState.bufferWriting = BufferWriting::RGB | BufferWriting::Alpha;
+					renderState.msaa = true;
 
 					renderCommand.viewportEntity = viewportEntity;
 					renderCommand.renderPass = 255;
@@ -584,12 +585,16 @@ namespace DevTools {
 							renderCommand.shaderProgram = imageShaderProgramEntity;
 						}
 
-						state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
+						renderState.blendLhs = BlendOperand::SourceAlpha;
+						renderState.blendOperator = BlendOperator::Add;
+						renderState.blendRhs = BlendOperand::InverseSourceAlpha;
 					} else {
-						state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
+						renderState.blendLhs = BlendOperand::SourceAlpha;
+						renderState.blendOperator = BlendOperator::Add;
+						renderState.blendRhs = BlendOperand::InverseSourceAlpha;
 					}
 
-					renderCommand.bgfxState = state;
+					renderCommand.renderState = renderState;
 
 					// Project scissor/clipping rectangles into framebuffer space
 					ImVec4 clipRect;
