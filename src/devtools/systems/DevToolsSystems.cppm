@@ -37,6 +37,8 @@ export namespace DevTools {
 		Core::ResourceHandlePtr mShaderProgram;
 		Core::ResourceHandlePtr mImageShaderProgram;
 
+		entt::entity mViewportEntity{ entt::null };
+
 		bool mIsEnabled{ false };
 
 	};

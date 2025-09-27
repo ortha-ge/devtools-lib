@@ -2,7 +2,7 @@ module;
 
 #include <entt/entity/entity.hpp>
 #include <entt/fwd.hpp>
-#include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 #include <rpp/rpp.hpp>
 
 export module DevTools.MaterialEditorTool;
@@ -40,7 +40,8 @@ export namespace DevTools {
 		rpp::schedulers::run_loop mRunLoop;
 		rpp::composite_disposable mSubscriptions;
 
-		glm::vec3 mMaterialRenderPos;
+		glm::vec2 mMaterialRenderPos;
+		glm::vec2 mMaterialRenderScale;
 	};
 
 } // namespace DevTools

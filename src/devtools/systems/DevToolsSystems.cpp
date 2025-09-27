@@ -32,6 +32,7 @@ import Core.ResourceHandleUtils;
 import Core.ResourceLoadRequest;
 import Core.Spatial;
 import Core.TypeLoader;
+import Core.Window;
 import DevTools.Tool;
 import Gfx.Image;
 import Gfx.IndexBuffer;
@@ -343,6 +344,13 @@ namespace DevTools {
 		mImageShaderProgram = ResourceLoadRequest::create<TypeLoader>(registry, "assets/shaders/ocornut_imgui_image.json", shaderProgramLoaderAdapter);
 		mFontImage = createFontTexture(registry);
 
+		entt::registry& _registry = mRegistry;
+		mViewportEntity = _registry.create();
+		Viewport viewport;
+		viewport.offset = { 0.0f, 0.0f };
+		viewport.dimensions = { 1.0f, 1.0f };
+		_registry.emplace<Viewport>(mViewportEntity, viewport);
+
 		mTickHandle = mScheduler.schedule([this, lastTick = std::chrono::steady_clock::now()] mutable {
 			using DeltaTimeCast = std::chrono::duration<float>;
 			auto clockNow = std::chrono::steady_clock::now();
@@ -388,8 +396,17 @@ namespace DevTools {
 					}
 				});
 
-			io.DisplaySize.x = 1360;
-			io.DisplaySize.y = 768;
+			// TODO: Need a way to get the main window
+			auto windowView = registry.view<Window>();
+			if (windowView.empty()) {
+				return;
+			}
+
+			const entt::entity windowEntity = windowView.front();
+			const auto& window{ registry.get<Window>(windowEntity) };
+
+			io.DisplaySize.x = window.width;
+			io.DisplaySize.y = window.height;
 
 			ImGui::NewFrame();
 
@@ -499,128 +516,132 @@ namespace DevTools {
 		using namespace Core;
 		using namespace Gfx;
 
-		registry.view<Viewport>().each([this, &registry](const entt::entity viewportEntity, const Viewport& viewport) {
-			auto&& [shaderProgramEntity, shaderProgram] = getResourceAndEntity<ShaderProgram>(registry, mShaderProgram);
-			auto&& [imageShaderProgramEntity, imageShaderProgram] = getResourceAndEntity<ShaderProgram>(registry, mImageShaderProgram);
-			if (!shaderProgram || !imageShaderProgram) {
-				return;
-			}
+		if (!registry.all_of<Viewport>(mViewportEntity)) {
+			return;
+		}
 
-			// const bgfx::Caps* caps = bgfx::getCaps();
-			const ImDrawData* drawData = ImGui::GetDrawData();
-			if (!drawData) {
-				return;
-			}
+		const auto& viewport{ registry.get<Viewport>(mViewportEntity) };
 
-			int32_t dispWidth = int32_t(drawData->DisplaySize.x * drawData->FramebufferScale.x);
-			int32_t dispHeight = int32_t(drawData->DisplaySize.y * drawData->FramebufferScale.y);
-			if (dispWidth <= 0 || dispHeight <= 0) {
-				return;
-			}
+		auto&& [shaderProgramEntity, shaderProgram] = getResourceAndEntity<ShaderProgram>(registry, mShaderProgram);
+		auto&& [imageShaderProgramEntity, imageShaderProgram] = getResourceAndEntity<ShaderProgram>(registry, mImageShaderProgram);
+		if (!shaderProgram || !imageShaderProgram) {
+			return;
+		}
 
-			const ImVec2 clipPos = drawData->DisplayPos; // (0,0) unless using multi-viewports
-			const ImVec2 clipScale = drawData->FramebufferScale;
-			// (1,1) unless using retina display which are often (2,2)
+		// const bgfx::Caps* caps = bgfx::getCaps();
+		const ImDrawData* drawData = ImGui::GetDrawData();
+		if (!drawData) {
+			return;
+		}
 
-			int sortDepth = 0;
-			for (int i = 0; i < drawData->CmdListsCount; ++i) {
-				const ImDrawList* drawList = drawData->CmdLists[i];
+		int32_t dispWidth = int32_t(drawData->DisplaySize.x * drawData->FramebufferScale.x);
+		int32_t dispHeight = int32_t(drawData->DisplaySize.y * drawData->FramebufferScale.y);
+		if (dispWidth <= 0 || dispHeight <= 0) {
+			return;
+		}
 
-				// Vertex Buffer
-				const auto vertexCount = static_cast<uint32_t>(drawList->VtxBuffer.size());
-				VertexBuffer vertexBuffer;
-				vertexBuffer.vertexLayout = shaderProgramEntity;
-				vertexBuffer.type = VertexBufferType::Transient;
-				vertexBuffer.data.resize(sizeof(ImDrawVert) * vertexCount);
+		const ImVec2 clipPos = drawData->DisplayPos; // (0,0) unless using multi-viewports
+		const ImVec2 clipScale = drawData->FramebufferScale;
+		// (1,1) unless using retina display which are often (2,2)
 
-				auto* vertexHead = reinterpret_cast<ImDrawVert*>(vertexBuffer.data.data());
-				memcpy(vertexHead, drawList->VtxBuffer.begin(), sizeof(ImDrawVert) * vertexCount);
+		int sortDepth = 0;
+		for (int i = 0; i < drawData->CmdListsCount; ++i) {
+			const ImDrawList* drawList = drawData->CmdLists[i];
 
-				const entt::entity vertexBufferEntity = registry.create();
-				registry.emplace<VertexBuffer>(vertexBufferEntity, std::move(vertexBuffer));
+			// Vertex Buffer
+			const auto vertexCount = static_cast<uint32_t>(drawList->VtxBuffer.size());
+			VertexBuffer vertexBuffer;
+			vertexBuffer.vertexLayout = shaderProgramEntity;
+			vertexBuffer.type = VertexBufferType::Transient;
+			vertexBuffer.data.resize(sizeof(ImDrawVert) * vertexCount);
 
-				// Index Buffer
-				const auto indexCount = static_cast<uint32_t>(drawList->IdxBuffer.size());
-				IndexBuffer indexBuffer;
-				indexBuffer.type = IndexBufferType::Transient;
-				indexBuffer.data.resize(sizeof(ImDrawIdx) * indexCount);
+			auto* vertexHead = reinterpret_cast<ImDrawVert*>(vertexBuffer.data.data());
+			memcpy(vertexHead, drawList->VtxBuffer.begin(), sizeof(ImDrawVert) * vertexCount);
 
-				auto* indexHead = reinterpret_cast<ImDrawIdx*>(indexBuffer.data.data());
-				memcpy(indexHead, drawList->IdxBuffer.begin(), sizeof(ImDrawIdx) * indexCount);
+			const entt::entity vertexBufferEntity = registry.create();
+			registry.emplace<VertexBuffer>(vertexBufferEntity, std::move(vertexBuffer));
 
-				const entt::entity indexBufferEntity = registry.create();
-				registry.emplace<IndexBuffer>(indexBufferEntity, std::move(indexBuffer));
+			// Index Buffer
+			const auto indexCount = static_cast<uint32_t>(drawList->IdxBuffer.size());
+			IndexBuffer indexBuffer;
+			indexBuffer.type = IndexBufferType::Transient;
+			indexBuffer.data.resize(sizeof(ImDrawIdx) * indexCount);
 
-				for (const ImDrawCmd *cmd = drawList->CmdBuffer.begin(), *cmdEnd = drawList->CmdBuffer.end();
-					 cmd != cmdEnd; ++cmd) {
-					if (cmd->ElemCount == 0) {
-						continue;
-					}
+			auto* indexHead = reinterpret_cast<ImDrawIdx*>(indexBuffer.data.data());
+			memcpy(indexHead, drawList->IdxBuffer.begin(), sizeof(ImDrawIdx) * indexCount);
 
-					RenderCommand renderCommand;
-					renderCommand.vertexBuffer = vertexBufferEntity;
-					renderCommand.indexBuffer = indexBufferEntity;
-					renderCommand.vertexOffset = cmd->VtxOffset;
-					renderCommand.vertexCount = vertexCount;
-					renderCommand.indexOffset = cmd->IdxOffset;
-					renderCommand.indexCount = cmd->ElemCount;
+			const entt::entity indexBufferEntity = registry.create();
+			registry.emplace<IndexBuffer>(indexBufferEntity, std::move(indexBuffer));
 
-					RenderState renderState{};
-					renderState.bufferWriting = BufferWriting::RGB | BufferWriting::Alpha;
-					renderState.msaa = true;
-
-					renderCommand.viewportEntity = viewportEntity;
-					renderCommand.renderPass = 255;
-					renderCommand.sortDepth = sortDepth++;
-
-					renderCommand.shaderProgram = shaderProgramEntity;
-					renderCommand.uniformData["s_texColor"] = Any(entt::entity{ mFontImage });
-
-					if (ImTextureID{0} != cmd->TextureId) {
-						const entt::entity textureEntity = static_cast<entt::entity>(cmd->TextureId);
-						renderCommand.uniformData["s_texColor"] = Any(entt::entity{ textureEntity });
-
-						bool lod = false;
-						if (lod) {
-							renderCommand.shaderProgram = imageShaderProgramEntity;
-						}
-
-						renderState.blendLhs = BlendOperand::SourceAlpha;
-						renderState.blendOperator = BlendOperator::Add;
-						renderState.blendRhs = BlendOperand::InverseSourceAlpha;
-					} else {
-						renderState.blendLhs = BlendOperand::SourceAlpha;
-						renderState.blendOperator = BlendOperator::Add;
-						renderState.blendRhs = BlendOperand::InverseSourceAlpha;
-					}
-
-					renderCommand.renderState = renderState;
-
-					// Project scissor/clipping rectangles into framebuffer space
-					ImVec4 clipRect;
-					clipRect.x = (cmd->ClipRect.x - clipPos.x) * clipScale.x;
-					clipRect.y = (cmd->ClipRect.y - clipPos.y) * clipScale.y;
-					clipRect.z = (cmd->ClipRect.z - clipPos.x) * clipScale.x;
-					clipRect.w = (cmd->ClipRect.w - clipPos.y) * clipScale.y;
-
-					if (clipRect.x >= dispWidth || clipRect.y >= dispHeight || clipRect.z < 0.0f || clipRect.w < 0.0f) {
-						continue;
-					}
-
-					const uint16_t clipX = uint16_t(std::max(clipRect.x, 0.0f));
-					const uint16_t clipY = uint16_t(std::max(clipRect.y, 0.0f));
-
-					renderCommand.scissorRect = {
-						clipX,
-						clipY,
-						static_cast<uint16_t>(std::min(clipRect.z, 65535.0f) - clipX),
-						static_cast<uint16_t>(std::min(clipRect.w, 65535.0f) - clipY)
-					};
-
-					const entt::entity renderCommandEntity = registry.create();
-					registry.emplace<RenderCommand>(renderCommandEntity, std::move(renderCommand));
+			for (const ImDrawCmd *cmd = drawList->CmdBuffer.begin(), *cmdEnd = drawList->CmdBuffer.end();
+				 cmd != cmdEnd; ++cmd) {
+				if (cmd->ElemCount == 0) {
+					continue;
 				}
+
+				RenderCommand renderCommand;
+				renderCommand.vertexBuffer = vertexBufferEntity;
+				renderCommand.indexBuffer = indexBufferEntity;
+				renderCommand.vertexOffset = cmd->VtxOffset;
+				renderCommand.vertexCount = vertexCount;
+				renderCommand.indexOffset = cmd->IdxOffset;
+				renderCommand.indexCount = cmd->ElemCount;
+
+				RenderState renderState{};
+				renderState.bufferWriting = BufferWriting::RGB | BufferWriting::Alpha;
+				renderState.msaa = true;
+
+				renderCommand.viewportEntity = mViewportEntity;
+				renderCommand.renderPass = 255;
+				renderCommand.sortDepth = sortDepth++;
+
+				renderCommand.shaderProgram = shaderProgramEntity;
+				renderCommand.uniformData["s_texColor"] = Any(entt::entity{ mFontImage });
+
+				if (ImTextureID{0} != cmd->TextureId) {
+					const entt::entity textureEntity = static_cast<entt::entity>(cmd->TextureId);
+					renderCommand.uniformData["s_texColor"] = Any(entt::entity{ textureEntity });
+
+					bool lod = false;
+					if (lod) {
+						renderCommand.shaderProgram = imageShaderProgramEntity;
+					}
+
+					renderState.blendLhs = BlendOperand::SourceAlpha;
+					renderState.blendOperator = BlendOperator::Add;
+					renderState.blendRhs = BlendOperand::InverseSourceAlpha;
+				} else {
+					renderState.blendLhs = BlendOperand::SourceAlpha;
+					renderState.blendOperator = BlendOperator::Add;
+					renderState.blendRhs = BlendOperand::InverseSourceAlpha;
+				}
+
+				renderCommand.renderState = renderState;
+
+				// Project scissor/clipping rectangles into framebuffer space
+				ImVec4 clipRect;
+				clipRect.x = (cmd->ClipRect.x - clipPos.x) * clipScale.x;
+				clipRect.y = (cmd->ClipRect.y - clipPos.y) * clipScale.y;
+				clipRect.z = (cmd->ClipRect.z - clipPos.x) * clipScale.x;
+				clipRect.w = (cmd->ClipRect.w - clipPos.y) * clipScale.y;
+
+				if (clipRect.x >= dispWidth || clipRect.y >= dispHeight || clipRect.z < 0.0f || clipRect.w < 0.0f) {
+					continue;
+				}
+
+				const uint16_t clipX = uint16_t(std::max(clipRect.x, 0.0f));
+				const uint16_t clipY = uint16_t(std::max(clipRect.y, 0.0f));
+
+				renderCommand.scissorRect = {
+					clipX,
+					clipY,
+					static_cast<uint16_t>(std::min(clipRect.z, 65535.0f) - clipX),
+					static_cast<uint16_t>(std::min(clipRect.w, 65535.0f) - clipY)
+				};
+
+				const entt::entity renderCommandEntity = registry.create();
+				registry.emplace<RenderCommand>(renderCommandEntity, std::move(renderCommand));
 			}
-		});
+		}
 	}
 } // namespace DevTools
