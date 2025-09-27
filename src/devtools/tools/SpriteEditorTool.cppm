@@ -37,6 +37,8 @@ export namespace DevTools {
 		static void _printSavedSpriteJSON(entt::registry&, const Gfx::SpriteDescriptor&);
 
 		entt::entity mSpriteObjectRoot{ entt::null };
+		entt::entity mRenderTexture{ entt::null };
+
 		glm::vec3 mSpriteRenderPos{ 225.0f, 150.0f, 10.0f };
 		uint32_t mSelectedFrame{ 0u };
 

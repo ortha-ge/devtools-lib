@@ -12,6 +12,7 @@ module;
 module DevTools.SpriteEditorTool;
 
 import Core.Any;
+import Core.EnTTNode;
 import Core.JsonTypeLoaderAdapter;
 import Core.JsonTypeSaverAdapter;
 import Core.Log;
@@ -23,10 +24,12 @@ import DevTools.Tool;
 import Gfx.Camera;
 import Gfx.MaterialDescriptor;
 import Gfx.RenderObject;
+import Gfx.RenderTexture;
 import Gfx.Sprite;
 import Gfx.SpriteObject;
 import Gfx.Reflection.MaterialDescriptor;
 import Gfx.Reflection.Sprite;
+import Gfx.Viewport;
 
 namespace DevTools::SpriteEditorToolInternal {
 	constexpr const char* PrintExportFormatString = R"(Sprite JSON
@@ -77,10 +80,36 @@ namespace DevTools {
 	}
 
 	void SpriteEditorTool::open(entt::registry& registry) {
-		if (mSpriteObjectRoot == entt::null) {
-			mSpriteObjectRoot = registry.create();
-			registry.emplace<Core::Spatial>(mSpriteObjectRoot, glm::vec3{}, glm::vec3(5.0f, 5.0f, 1.0f));
-		}
+		using namespace Core;
+		using namespace Gfx;
+
+		const entt::entity sceneRoot = createEnTTNode(registry, "MaterialToolRoot");
+
+		// Render Texture
+		mRenderTexture = registry.create();
+
+		RenderTexture renderTexture;
+		renderTexture.width = 512;
+		renderTexture.height = 512;
+		registry.emplace<RenderTexture>(mRenderTexture, renderTexture);
+
+		// Camera + Viewport
+		const entt::entity cameraEntity = registry.create();
+		registry.emplace<Spatial>(cameraEntity);
+
+		Viewport viewport;
+		viewport.renderTarget = mRenderTexture;
+		viewport.offset = { 0.0f, 0.0f };
+		viewport.dimensions = { 1.0f, 1.0f };
+		registry.emplace<Viewport>(cameraEntity, viewport);
+
+		Camera camera;
+		camera.viewport = cameraEntity;
+		camera.sceneRoot = sceneRoot;
+		registry.emplace<Camera>(cameraEntity, camera);
+
+		mSpriteObjectRoot = createChildEnTTNode(registry, sceneRoot, "SpritePreview");
+		registry.emplace<Spatial>(mSpriteObjectRoot, glm::vec3{ 500.0f, 500.0f, 0.0f }, glm::vec3{ 4.0f, 4.0f, 1.0f });
 
 		registerSubscriptions(registry);
 	}
@@ -89,6 +118,8 @@ namespace DevTools {
 		if (!mRunLoop.is_empty()) {
 			mRunLoop.dispatch();
 		}
+
+		ImGui::Image(static_cast<ImTextureID>(mRenderTexture), ImVec2{ 512, 512});
 
 		std::string materialResourceFilePath = mMaterialResourceFilePath.get_value();
 		if (ImGui::InputText("Material Resource File Path", &materialResourceFilePath)) {
