@@ -9,6 +9,7 @@ import DevTools.LogViewerToolService;
 import DevTools.MaterialEditorToolService;
 import DevTools.NodeToolService;
 import DevTools.ResourceCacheToolService;
+import DevTools.SceneViewerToolService;
 import DevTools.SpriteEditorToolService;
 
 namespace DevTools {
@@ -19,6 +20,7 @@ namespace DevTools {
 		container.emplace<NodeToolService>();
 		container.emplace<MaterialEditorToolService>();
 		container.emplace<ResourceCacheToolService>();
+		container.emplace<SceneViewerToolService>();
 		container.emplace<SpriteEditorToolService>();
 	}
 
