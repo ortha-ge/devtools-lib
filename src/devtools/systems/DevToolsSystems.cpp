@@ -408,6 +408,7 @@ namespace DevTools {
 
 			io.DisplaySize.x = window.width;
 			io.DisplaySize.y = window.height;
+			io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 			ImGui::NewFrame();
 			ImGuizmo::BeginFrame();

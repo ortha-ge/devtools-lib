@@ -1,14 +1,20 @@
 module;
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <imgui.h>
 #include <ImGuizmo.h>
 
 module DevTools.SceneViewerTool;
 
+import Core.EnTTNode;
+import Core.GlobalSpatial;
 import Core.Spatial;
+import DevTools.SelectedEntity;
 import DevTools.SelectedSceneRoot;
 import DevTools.Tool;
 import Gfx.Camera;
@@ -36,13 +42,13 @@ namespace DevTools {
 		mRenderTexture = registry.create();
 
 		RenderTexture renderTexture;
-		renderTexture.width = 512;
-		renderTexture.height = 512;
+		renderTexture.width = 1920;
+		renderTexture.height = 1080;
 		registry.emplace<RenderTexture>(mRenderTexture, renderTexture);
 
 		// Camera + Viewport
-		mCameraEntity = registry.create();
-		registry.emplace<Spatial>(mCameraEntity, glm::vec3{}, glm::vec3{ 5.0f, 5.0f,  1.0f });
+		mCameraEntity = createEnTTNode(registry, "DevCamera");
+		registry.emplace<Spatial>(mCameraEntity, glm::vec3{}, glm::vec3{ 1.0f, 1.0f,  1.0f });
 
 		Viewport viewport;
 		viewport.renderTarget = mRenderTexture;
@@ -75,26 +81,58 @@ namespace DevTools {
 		const auto& [cameraSpatial, camera] = registry.get<Spatial, Camera>(mCameraEntity);
 		camera.sceneRoot = selectedSceneRootView.front();
 
-		ImGui::Image(static_cast<ImTextureID>(mRenderTexture), ImVec2{ 1360, 768 });
-
-		glm::mat4 translation = glm::translate(glm::mat4(1.0f), cameraSpatial.position);
-		glm::mat4 rotation = glm::mat4_cast(cameraSpatial.rotation);
-		glm::mat4 scale = glm::scale(glm::mat4(1.0f), cameraSpatial.scale);
-		glm::mat4 viewMatrix{ 1.0f };
-
-		glm::mat4 projectionMatrix{ glm::ortho(0.0f, 1920.0f, 1080.0f, 0.0f, 0.0f, 1000.0f) };
+		/* Camera Gizmo View/Model/Projection
+		 * - View matrix shouldn't be scaled otherwise the gizmos get scaled.
+		 * - Window position has to be add/subtracted from final gizmo position.
+		 */
 		ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
 		ImGuizmo::Enable(true);
 		ImGuizmo::SetOrthographic(true);
 		ImGuizmo::SetRect(0, 0, 1920.0f, 1080.0f);
 
-		auto& translationVec = mGizmoTransform[3];
-		ImGui::DragFloat3("Gizmo Pos", &translationVec[0]);
+		const ImVec2 cursorPos{ ImGui::GetCursorScreenPos() };
+		//ImGui::SetNextItemAllowOverlap();
+		ImGui::Image(static_cast<ImTextureID>(mRenderTexture), ImVec2{ 1920, 1080 });
+		// ImGui::SetCursorScreenPos(cursorPos);
+		// ImGui::InvisibleButton("SceneViewClickMask", ImVec2(1920.0f, 1080.0f));
 
-		ImGuizmo::Manipulate(&viewMatrix[0][0], &projectionMatrix[0][0], ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::WORLD, &mGizmoTransform[0][0]);
+		const ImVec2 windowPos{ ImGui::GetWindowPos() };
+		glm::mat4 viewMatrix = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ windowPos.x, windowPos.y, 0.0f });
 
-		glm::mat4 cubeMatrix{ 1.0f };
-		ImGuizmo::DrawCubes(&viewMatrix[0][0], &projectionMatrix[0][0], &cubeMatrix[0][0], 1);
+		glm::mat4 projectionMatrix{ glm::ortho(0.0f, 1920.0f, 1080.0f, 0.0f, 0.0f, 1000.0f) };
+
+
+		auto selectedEntityView = registry.view<SelectedEntity>();
+		if (!selectedEntityView.empty()) {
+			const entt::entity selectedEntity = selectedEntityView.front();
+			if (registry.all_of<GlobalSpatial>(selectedEntity)) {
+				const auto& selectedEntityGlobalSpatial{ registry.get<GlobalSpatial>(selectedEntity) };
+				glm::mat4 cameraTranslation = glm::translate(glm::mat4(1.0f), cameraSpatial.position);
+				glm::mat4 cameraScale = glm::scale(glm::mat4(1.0f), cameraSpatial.scale);
+
+				glm::mat4 entityTranslation{ glm::translate(glm::mat4(1.0f), selectedEntityGlobalSpatial.position) };
+				glm::mat4 entityScale{ glm::scale(glm::mat4(1.0f), selectedEntityGlobalSpatial.scale) };
+				mGizmoTransform = glm::inverse(cameraTranslation * cameraScale) * entityTranslation;
+				//mGizmoTransform = glm::inverse(translation) * mGizmoTransform;
+				ImGuizmo::Manipulate(&viewMatrix[0][0], &projectionMatrix[0][0], ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::WORLD, &mGizmoTransform[0][0]);
+
+				mGizmoTransform = mGizmoTransform * (cameraTranslation * cameraScale);
+
+				if (ImGuizmo::IsUsing()) {
+					auto& selectedEntitySpatial{ registry.get<Spatial>(selectedEntity) };
+					glm::quat rot;
+					glm::vec3 scale;
+					glm::vec3 sqew;
+					glm::vec4 perspective;
+					glm::decompose(mGizmoTransform, scale, rot, selectedEntitySpatial.position, sqew, perspective);
+				}
+			}
+		}
+
+
+
+
+
 	}
 
 	void SceneViewerTool::onClose(entt::registry& registry) {
