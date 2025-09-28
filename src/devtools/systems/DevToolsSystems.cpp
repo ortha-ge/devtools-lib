@@ -10,6 +10,7 @@ module;
 #include <glm/gtc/quaternion.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <ImGuizmo.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome6.h>
 #include <IconFontCppHeaders/IconsFontAwesome6.h_fa-regular-400.ttf.h>
@@ -409,6 +410,7 @@ namespace DevTools {
 			io.DisplaySize.y = window.height;
 
 			ImGui::NewFrame();
+			ImGuizmo::BeginFrame();
 
 			if (mIsEnabled) {
 				drawDevToolsImGui(mRegistry);

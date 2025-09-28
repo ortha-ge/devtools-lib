@@ -1,8 +1,10 @@
 module;
 
 #include <entt/entt.hpp>
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <imgui.h>
+#include <ImGuizmo.h>
 
 module DevTools.SceneViewerTool;
 
@@ -58,6 +60,7 @@ namespace DevTools {
 	}
 
 	void SceneViewerTool::onUpdate(entt::registry& registry) {
+		using namespace Core;
 		using namespace Gfx;
 
 		auto selectedSceneRootView = registry.view<SelectedSceneRoot>();
@@ -65,13 +68,33 @@ namespace DevTools {
 			return;
 		}
 
-		if (!registry.all_of<Camera>(mCameraEntity)) {
+		if (!registry.all_of<Camera, Spatial>(mCameraEntity)) {
 			return;
 		}
 
-		registry.get<Camera>(mCameraEntity).sceneRoot = selectedSceneRootView.front();
+		const auto& [cameraSpatial, camera] = registry.get<Spatial, Camera>(mCameraEntity);
+		camera.sceneRoot = selectedSceneRootView.front();
 
 		ImGui::Image(static_cast<ImTextureID>(mRenderTexture), ImVec2{ 1360, 768 });
+
+		glm::mat4 translation = glm::translate(glm::mat4(1.0f), cameraSpatial.position);
+		glm::mat4 rotation = glm::mat4_cast(cameraSpatial.rotation);
+		glm::mat4 scale = glm::scale(glm::mat4(1.0f), cameraSpatial.scale);
+		glm::mat4 viewMatrix{ 1.0f };
+
+		glm::mat4 projectionMatrix{ glm::ortho(0.0f, 1920.0f, 1080.0f, 0.0f, 0.0f, 1000.0f) };
+		ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+		ImGuizmo::Enable(true);
+		ImGuizmo::SetOrthographic(true);
+		ImGuizmo::SetRect(0, 0, 1920.0f, 1080.0f);
+
+		auto& translationVec = mGizmoTransform[3];
+		ImGui::DragFloat3("Gizmo Pos", &translationVec[0]);
+
+		ImGuizmo::Manipulate(&viewMatrix[0][0], &projectionMatrix[0][0], ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::WORLD, &mGizmoTransform[0][0]);
+
+		glm::mat4 cubeMatrix{ 1.0f };
+		ImGuizmo::DrawCubes(&viewMatrix[0][0], &projectionMatrix[0][0], &cubeMatrix[0][0], 1);
 	}
 
 	void SceneViewerTool::onClose(entt::registry& registry) {

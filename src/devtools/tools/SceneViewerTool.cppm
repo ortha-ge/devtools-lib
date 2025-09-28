@@ -1,6 +1,7 @@
 module;
 
 #include <entt/entt.hpp>
+#include <glm/mat4x4.hpp>
 
 export module DevTools.SceneViewerTool;
 
@@ -23,6 +24,8 @@ export namespace DevTools {
 
 		entt::entity mRenderTexture{ entt::null };
 		entt::entity mCameraEntity{ entt::null };
+
+		glm::mat4 mGizmoTransform{ 1.0f };
 
 	};
 
