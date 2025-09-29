@@ -1,17 +1,13 @@
-module;
-
-#include <entt/fwd.hpp>
-
 export module DevTools.ResourceCacheTool;
 
-import Core.EnTTRegistry;
+import entt;
 
 export namespace DevTools {
 
 	class ResourceCacheTool {
 	public:
 
-		ResourceCacheTool(Core::EnTTRegistry&);
+		ResourceCacheTool(entt::registry&);
 
 		void setupTool(entt::registry&);
 

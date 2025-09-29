@@ -3,9 +3,9 @@ module;
 #include <functional>
 #include <string>
 
-#include <entt/fwd.hpp>
-
 export module DevTools.Tool;
+
+import entt;
 
 export namespace DevTools {
 

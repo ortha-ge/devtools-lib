@@ -1,6 +1,8 @@
 module;
 
-#include <entt/entt.hpp>
+#include <memory>
+#include <vector>
+
 #include <imgui.h>
 
 module DevTools.NodeTool;
@@ -11,6 +13,7 @@ import Core.TypeId;
 import DevTools.SelectedEntity;
 import DevTools.SelectedSceneRoot;
 import DevTools.Tool;
+import entt;
 
 namespace DevTools::NodeToolInternal {
 
@@ -25,6 +28,10 @@ namespace DevTools::NodeToolInternal {
 		const entt::entity nodeEntity = enttNode->getEntity();
 
 		registry.clear<SelectedEntity>();
+		if (!registry.valid(nodeEntity)) {
+			return;
+		}
+
 		registry.emplace<SelectedEntity>(nodeEntity);
 	}
 
@@ -39,6 +46,10 @@ namespace DevTools::NodeToolInternal {
 		const entt::entity nodeEntity = enttNode->getEntity();
 
 		registry.clear<SelectedSceneRoot>();
+		if (!registry.valid(nodeEntity)) {
+			return;
+		}
+
 		registry.emplace<SelectedSceneRoot>(nodeEntity);
 	}
 
@@ -64,17 +75,19 @@ namespace DevTools::NodeToolInternal {
 
 namespace DevTools {
 
-	NodeTool::NodeTool(Core::EnTTRegistry& registry) {
+	NodeTool::NodeTool(entt::registry& registry) {
 		setupTool(registry);
 	}
 
 	void NodeTool::setupTool(entt::registry& registry) {
 		const entt::entity toolEntity = registry.create();
-		registry.emplace<Tool>(toolEntity, "Nodes",
-			[this](entt::registry& registry, Tool&) { onOpen(registry); },
-			[this](entt::registry& registry, Tool&) { onUpdate(registry); },
-			[this](entt::registry& registry, Tool&) { onClose(registry); }
-		);
+		registry.emplace<Tool>(toolEntity, Tool {
+			.toolName = "Nodes",
+			.openFunction = [this](entt::registry& registry, Tool&) { onOpen(registry); },
+			.updateFunction = [this](entt::registry& registry, Tool&) { onUpdate(registry); },
+			.closeFunction = [this](entt::registry& registry, Tool&) { onClose(registry); },
+			.isOpen = true
+		});
 	}
 
 	void NodeTool::onOpen(entt::registry&) {

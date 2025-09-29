@@ -4,9 +4,6 @@ module;
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include <entt/entt.hpp>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
 #include <rpp/rpp.hpp>
 
 module DevTools.SpriteEditorTool;
@@ -30,6 +27,8 @@ import Gfx.SpriteObject;
 import Gfx.Reflection.MaterialDescriptor;
 import Gfx.Reflection.Sprite;
 import Gfx.Viewport;
+import entt;
+import glm;
 
 namespace DevTools::SpriteEditorToolInternal {
 	constexpr const char* PrintExportFormatString = R"(Sprite JSON
@@ -40,7 +39,7 @@ namespace DevTools::SpriteEditorToolInternal {
 
 namespace DevTools {
 
-	SpriteEditorTool::SpriteEditorTool(Core::EnTTRegistry& registry)
+	SpriteEditorTool::SpriteEditorTool(entt::registry& registry)
 		: mMaterialResourceFilePath("")
 		, mSprite(Gfx::SpriteDescriptor{}) {
 

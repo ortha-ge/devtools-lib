@@ -1,6 +1,5 @@
 module;
 
-#include <entt/entt.hpp>
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
@@ -134,7 +133,7 @@ namespace DevTools {
 
 
 
-	EntityTool::EntityTool(Core::EnTTRegistry& registry) {
+	EntityTool::EntityTool(entt::registry& registry) {
 		setupTool(registry);
 	}
 

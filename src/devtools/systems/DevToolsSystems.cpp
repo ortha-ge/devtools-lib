@@ -5,9 +5,6 @@ module;
 #include <utility>
 
 #include <bimg/bimg.h>
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
@@ -47,6 +44,8 @@ import Gfx.Viewport;
 import Input.KeyboardEvent;
 import Input.KeyboardState;
 import Input.MouseState;
+import entt;
+import glm;
 
 namespace DevTools {
 	struct FontRangeMerge {
@@ -306,7 +305,7 @@ namespace DevTools {
 		return std::nullopt;
 	}
 
-	DevToolsSystems::DevToolsSystems(Core::EnTTRegistry& registry, Core::Scheduler& scheduler)
+	DevToolsSystems::DevToolsSystems(entt::registry& registry, Core::Scheduler& scheduler)
 		: mRegistry{ registry }
 		, mScheduler{ scheduler } {
 		using namespace Core;
@@ -486,6 +485,8 @@ namespace DevTools {
 
 			ImGui::EndMainMenuBar();
 		}
+
+		ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
 
 		toolUpdateView.each([this](Tool& tool) {
 			if (!tool.isOpen) {

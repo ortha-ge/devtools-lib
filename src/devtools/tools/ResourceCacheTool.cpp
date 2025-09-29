@@ -2,17 +2,17 @@ module;
 
 #include <chrono>
 
-#include <entt/entt.hpp>
 #include <imgui.h>
 
 module DevTools.ResourceCacheTool;
 
 import Core.ResourceCache;
 import DevTools.Tool;
+import entt;
 
 namespace DevTools {
 
-	ResourceCacheTool::ResourceCacheTool(Core::EnTTRegistry& registry) {
+	ResourceCacheTool::ResourceCacheTool(entt::registry& registry) {
 		setupTool(registry);
 	}
 

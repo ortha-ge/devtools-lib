@@ -1,22 +1,20 @@
 module;
 
-#include <entt/entity/entity.hpp>
-#include <entt/fwd.hpp>
-#include <glm/vec2.hpp>
 #include <rpp/rpp.hpp>
 
 export module DevTools.MaterialEditorTool;
 
-import Core.EnTTRegistry;
 import Core.ResourceHandle;
 import Gfx.MaterialDescriptor;
+import entt;
+import glm;
 
 export namespace DevTools {
 
 	class MaterialEditorTool {
 	public:
 
-		MaterialEditorTool(Core::EnTTRegistry&);
+		MaterialEditorTool(entt::registry&);
 
 		void setupTool(entt::registry&);
 

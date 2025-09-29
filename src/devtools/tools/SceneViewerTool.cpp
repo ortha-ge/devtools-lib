@@ -1,11 +1,7 @@
 module;
 
-#define GLM_ENABLE_EXPERIMENTAL
+#include <tuple>
 
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <imgui.h>
 #include <ImGuizmo.h>
 
@@ -20,10 +16,13 @@ import DevTools.Tool;
 import Gfx.Camera;
 import Gfx.RenderTexture;
 import Gfx.Viewport;
+import Gfx.ViewportUtilities;
+import entt;
+import glm;
 
 namespace DevTools {
 
-	SceneViewerTool::SceneViewerTool(Core::EnTTRegistry& registry) {
+	SceneViewerTool::SceneViewerTool(entt::registry& registry) {
 		setupTool(registry);
 	}
 
@@ -32,11 +31,13 @@ namespace DevTools {
 		using namespace Gfx;
 
 		const entt::entity toolEntity = registry.create();
-		registry.emplace<Tool>(toolEntity, "Scene",
-			[this](entt::registry& registry, Tool&) { onOpen(registry); },
-			[this](entt::registry& registry, Tool&) { onUpdate(registry); },
-			[this](entt::registry& registry, Tool&) { onClose(registry); }
-		);
+		registry.emplace<Tool>(toolEntity, Tool {
+			.toolName = "Scene",
+			.openFunction = [this](entt::registry& registry, Tool&) { onOpen(registry); },
+			.updateFunction = [this](entt::registry& registry, Tool&) { onUpdate(registry); },
+			.closeFunction = [this](entt::registry& registry, Tool&) { onClose(registry); },
+			.isOpen = true
+		});
 
 		// Render Texture
 		mRenderTexture = registry.create();
@@ -81,26 +82,62 @@ namespace DevTools {
 		const auto& [cameraSpatial, camera] = registry.get<Spatial, Camera>(mCameraEntity);
 		camera.sceneRoot = selectedSceneRootView.front();
 
+		if (camera.viewport == entt::null) {
+			return;
+		}
+
+		if (!registry.all_of<Viewport>(camera.viewport)) {
+			return;
+		}
+
+		const auto& viewport{ registry.get<Viewport>(camera.viewport) };
+		const auto viewportScreenRect = getViewportScreenRect(registry, viewport);
+		if (!viewportScreenRect) {
+			return;
+		}
+
+		const glm::vec2 viewportScreenSize = getViewportScreenSize(*viewportScreenRect);
+
+		const entt::entity selectedSceneRootEntity = selectedSceneRootView.front();
+		if (registry.all_of<GlobalSpatial>(selectedSceneRootEntity)) {
+			glm::vec3 viewportCenter{
+				viewportScreenSize.x * 0.5f,
+				viewportScreenSize.y * 0.5f,
+				0.0f
+			};
+
+			const auto& selectedRootGlobalSpatial{ registry.get<GlobalSpatial>(selectedSceneRootEntity) };
+			cameraSpatial.position = selectedRootGlobalSpatial.position - viewportCenter;
+		} else {
+			cameraSpatial.position = glm::vec3{ 0.0f, 0.0f, 0.0f };
+		}
+
 		/* Camera Gizmo View/Model/Projection
 		 * - View matrix shouldn't be scaled otherwise the gizmos get scaled.
 		 * - Window position has to be add/subtracted from final gizmo position.
+		 * - Scene root global position should be added/subtracted from dev camera position
 		 */
 		ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
 		ImGuizmo::Enable(true);
 		ImGuizmo::SetOrthographic(true);
-		ImGuizmo::SetRect(0, 0, 1920.0f, 1080.0f);
+		ImGuizmo::SetRect(0, 0, viewportScreenSize.x, viewportScreenSize.y);
 
 		const ImVec2 cursorPos{ ImGui::GetCursorScreenPos() };
 		//ImGui::SetNextItemAllowOverlap();
-		ImGui::Image(static_cast<ImTextureID>(mRenderTexture), ImVec2{ 1920, 1080 });
+		ImGui::Image(static_cast<ImTextureID>(mRenderTexture), ImVec2{ viewportScreenSize.x, viewportScreenSize.y });
 		// ImGui::SetCursorScreenPos(cursorPos);
 		// ImGui::InvisibleButton("SceneViewClickMask", ImVec2(1920.0f, 1080.0f));
 
 		const ImVec2 windowPos{ ImGui::GetWindowPos() };
 		glm::mat4 viewMatrix = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ windowPos.x, windowPos.y, 0.0f });
 
-		glm::mat4 projectionMatrix{ glm::ortho(0.0f, 1920.0f, 1080.0f, 0.0f, 0.0f, 1000.0f) };
-
+		glm::mat4 projectionMatrix{ glm::ortho(
+			static_cast<float>(viewportScreenRect->bottomLeft.x),
+			static_cast<float>(viewportScreenRect->topRight.x),
+			static_cast<float>(viewportScreenRect->bottomLeft.y),
+			static_cast<float>(viewportScreenRect->topRight.y),
+			0.0f, 1000.0f)
+		};
 
 		auto selectedEntityView = registry.view<SelectedEntity>();
 		if (!selectedEntityView.empty()) {

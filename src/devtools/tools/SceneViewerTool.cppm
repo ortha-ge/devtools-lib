@@ -1,18 +1,14 @@
-module;
-
-#include <entt/entt.hpp>
-#include <glm/mat4x4.hpp>
-
 export module DevTools.SceneViewerTool;
 
-import Core.EnTTRegistry;
+import entt;
+import glm;
 
 export namespace DevTools {
 
 	class SceneViewerTool {
 	public:
 
-		SceneViewerTool(Core::EnTTRegistry&);
+		SceneViewerTool(entt::registry&);
 
 		void setupTool(entt::registry&);
 

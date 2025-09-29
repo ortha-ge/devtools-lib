@@ -1,7 +1,5 @@
 module;
 
-#include <glm/glm.hpp>
-#include <entt/entt.hpp>
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <rpp/rpp.hpp>
@@ -30,6 +28,8 @@ import Gfx.MaterialDescriptor;
 import Gfx.Reflection.MaterialDescriptor;
 import Gfx.Reflection.Sprite;
 import Gfx.Viewport;
+import entt;
+import glm;
 
 namespace DevTools::MaterialEditorToolInternal {
 	constexpr const char* PrintExportFormatString = R"(Material JSON
@@ -39,7 +39,7 @@ namespace DevTools::MaterialEditorToolInternal {
 
 namespace DevTools {
 
-	MaterialEditorTool::MaterialEditorTool(Core::EnTTRegistry& registry)
+	MaterialEditorTool::MaterialEditorTool(entt::registry& registry)
 		: mMaterialDescriptor(Gfx::MaterialDescriptor{
 			.shaderProgramFilePath = "assets/shaders/sprite_shader_program.json",
 			.textureImageFilePath = "assets/textures/frog.png"

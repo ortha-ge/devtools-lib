@@ -1,17 +1,13 @@
-module;
-
-#include <entt/fwd.hpp>
-
 export module DevTools.EntityTool;
 
-import Core.EnTTRegistry;
+import entt;
 
 export namespace DevTools {
 
 	class EntityTool {
 	public:
 
-		EntityTool(Core::EnTTRegistry&);
+		EntityTool(entt::registry&);
 
 		void setupTool(entt::registry&);
 

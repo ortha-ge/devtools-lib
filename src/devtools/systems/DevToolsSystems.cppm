@@ -1,20 +1,15 @@
-module;
-
-#include <entt/entity/entity.hpp>
-#include <entt/fwd.hpp>
-
 export module DevTools.Systems;
 
-import Core.EnTTRegistry;
 import Core.ResourceHandle;
 import Core.Scheduler;
 import Gfx.Systems;
+import entt;
 
 export namespace DevTools {
 
 	class DevToolsSystems {
 	public:
-		DevToolsSystems(Core::EnTTRegistry&, Core::Scheduler&);
+		DevToolsSystems(entt::registry&, Core::Scheduler&);
 		~DevToolsSystems();
 
 		DevToolsSystems(DevToolsSystems&&) = delete;
@@ -29,7 +24,7 @@ export namespace DevTools {
 		void drawDevToolsImGui(entt::registry&);
 		void _renderImGui(entt::registry&);
 
-		Core::EnTTRegistry& mRegistry;
+		entt::registry& mRegistry;
 		Core::Scheduler& mScheduler;
 		Core::TaskHandle mTickHandle{};
 		entt::entity mFontImage{ entt::null };

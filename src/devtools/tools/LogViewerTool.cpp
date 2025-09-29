@@ -2,17 +2,17 @@ module;
 
 #include <string>
 
-#include <entt/entt.hpp>
 #include <imgui.h>
 
 module DevTools.LogViewerTool;
 
 import Core.Log;
 import DevTools.Tool;
+import entt;
 
 namespace DevTools {
 
-	LogViewerTool::LogViewerTool(Core::EnTTRegistry& registry) {
+	LogViewerTool::LogViewerTool(entt::registry& registry) {
 		setupTool(registry);
 	}
 

@@ -2,23 +2,21 @@ module;
 
 #include <string>
 
-#include <entt/fwd.hpp>
-#include <entt/entity/entity.hpp>
-#include <glm/vec3.hpp>
 #include <rpp/rpp.hpp>
 
 export module DevTools.SpriteEditorTool;
 
-import Core.EnTTRegistry;
 import Core.ResourceHandle;
 import Gfx.SpriteDescriptor;
+import entt;
+import glm;
 
 export namespace DevTools {
 
 	class SpriteEditorTool {
 	public:
 
-		SpriteEditorTool(Core::EnTTRegistry&);
+		SpriteEditorTool(entt::registry&);
 
 		void setupTool(entt::registry&);
 

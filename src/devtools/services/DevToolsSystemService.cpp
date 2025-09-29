@@ -1,7 +1,3 @@
-module;
-
-#include <entt/entt.hpp>
-
 module DevTools.SystemsService;
 
 import DevTools.EntityToolService;
