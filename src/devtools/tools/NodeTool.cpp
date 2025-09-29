@@ -9,6 +9,7 @@ module DevTools.NodeTool;
 
 import Core.EnTTNode;
 import Core.Node;
+import Core.NodeHandle;
 import Core.TypeId;
 import DevTools.SelectedEntity;
 import DevTools.SelectedSceneRoot;

@@ -9,6 +9,7 @@ import Core.ClassReflection;
 import Core.EnTTComponentAttribute;
 import Core.Log;
 import Core.Node;
+import Core.NodeHandle;
 import Core.ReflectionContext;
 import Core.Spatial;
 import Core.TypeId;
