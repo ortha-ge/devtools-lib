@@ -1,5 +1,10 @@
+module;
+
+#include <string>
+
 export module DevTools.NodeTool;
 
+import Core.Node;
 import entt;
 
 export namespace DevTools {
@@ -16,6 +21,12 @@ export namespace DevTools {
 		void onClose(entt::registry&);
 
 	private:
+
+		void recurseNodeTree(entt::registry&, Core::Node::Ptr, size_t = 0u);
+
+		std::string mLoadNodeJsonString;
+		std::string mRenameNodeString;
+		bool mIsNodeRenameOpen;
 
 	};
 
