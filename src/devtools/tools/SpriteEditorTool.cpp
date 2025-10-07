@@ -8,7 +8,7 @@ module;
 
 module DevTools.SpriteEditorTool;
 
-import Core.Any;
+import Ortha.RTTI.Any;
 import Core.EnTTNode;
 import Core.JsonTypeLoaderAdapter;
 import Core.JsonTypeSaverAdapter;
@@ -187,7 +187,7 @@ namespace DevTools {
 	void SpriteEditorTool::_printSavedSpriteJSON(entt::registry& registry, const Gfx::SpriteDescriptor& sprite) {
 		using namespace SpriteEditorToolInternal;
 
-		std::string exportedJSON{ Core::save(registry, Core::Any{ sprite }) };
+		std::string exportedJSON{ Core::save(registry, Ortha::RTTI::Any{ sprite }) };
 		Core::logEntry(registry, PrintExportFormatString, exportedJSON);
 	}
 

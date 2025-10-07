@@ -9,16 +9,17 @@ module;
 
 module DevTools.NodeTool;
 
-import Core.Any;
+import Ortha.RTTI.Any;
 import Core.EnTTNode;
 import Core.JsonTypeLoaderAdapter;
 import Core.JsonTypeSaverAdapter;
 import Core.Log;
 import Core.Node;
 import Core.NodeHandle;
-import Core.ReflectionContext;
+import Ortha.RTTI.ReflectionContext;
+import Ortha.RTTI.ReflectionContextStack;
 import Core.Reflection.Node;
-import Core.TypeId;
+import Ortha.RTTI.TypeId;
 import Core.TypeLoader;
 import Core.TypeSaver;
 import DevTools.SelectedEntity;
@@ -35,7 +36,7 @@ namespace DevTools::NodeToolInternal {
 	void selectNodeEntity(entt::registry& registry, Core::Node::Ptr node) {
 		using namespace Core;
 
-		if (node->getTypeId() != TypeId::get<EnTTNode>()) {
+		if (node->getTypeId() != Ortha::RTTI::TypeId::get<EnTTNode>()) {
 			return;
 		}
 
@@ -53,7 +54,7 @@ namespace DevTools::NodeToolInternal {
 	void selectSceneRootEntity(entt::registry& registry, Core::Node::Ptr node) {
 		using namespace Core;
 
-		if (node->getTypeId() != TypeId::get<EnTTNode>()) {
+		if (node->getTypeId() != Ortha::RTTI::TypeId::get<EnTTNode>()) {
 			return;
 		}
 
@@ -69,7 +70,7 @@ namespace DevTools::NodeToolInternal {
 	}
 
 	void exportNodeJSON(entt::registry& registry, Core::Node::Ptr node) {
-		std::string exportedJSON{ Core::save(registry, Core::Any{ *node.get() }) };
+		std::string exportedJSON{ Core::save(registry, Ortha::RTTI::Any{ *node.get() }) };
 		Core::logEntry(registry, PrintExportFormatString, exportedJSON);
 	}
 
@@ -127,9 +128,9 @@ namespace DevTools {
 
 				if (ImGui::Button("Load")) {
 					auto node = std::make_shared<Node>();
-					Any nodeAny{ *node.get() };
+					Ortha::RTTI::Any nodeAny{ *node.get() };
 
-					const auto& reflectionContext{ getCurrentReflectionContext() };
+					const auto& reflectionContext{ static_cast<Ortha::RTTI::ReflectionContext&>(Ortha::RTTI::getCurrentReflectionContext()) };
 					load(registry, reflectionContext, mLoadNodeJsonString, nodeAny);
 
 					const entt::entity nodeHandle = registry.create();

@@ -5,16 +5,16 @@ module;
 
 module DevTools.EntityTool;
 
-import Core.ClassReflection;
 import Core.EnTTComponentAttribute;
 import Core.Log;
 import Core.Node;
 import Core.NodeHandle;
-import Core.ReflectionContext;
 import Core.Spatial;
-import Core.TypeId;
 import DevTools.SelectedEntity;
 import DevTools.Tool;
+import Ortha.RTTI.ReflectionContext;
+import Ortha.RTTI.TypeHandle;
+import Ortha.RTTI.TypeProperty;
 
 namespace DevTools::EntityToolInternal {
 
@@ -44,10 +44,11 @@ namespace DevTools::EntityToolInternal {
 	}
 
 	template <typename PropertyType>
-	bool _renderBasicComponentProperty(const Core::ClassProperty& property, void* instance) {
+	bool _renderBasicComponentProperty(const Ortha::RTTI::TypeProperty& property, void* instance) {
 		using namespace Core;
-		if (property.getTypeId() == TypeId::get<PropertyType>()) {
-			_renderComponentProperty(property.getName().c_str(), property.apply<PropertyType>(instance));
+		using namespace Ortha::RTTI;
+		if (property.getTypeId() == TypeHandle::get<PropertyType>()) {
+			//_renderComponentProperty(property.getName().c_str(), property.apply<PropertyType>(instance));
 			return true;
 		}
 
@@ -55,42 +56,42 @@ namespace DevTools::EntityToolInternal {
 	}
 
 	template <typename Tail>
-	void _tryRenderBasicComponentProperty(const Core::ClassProperty& property, void* instance) {
+	void _tryRenderBasicComponentProperty(const Ortha::RTTI::TypeProperty& property, void* instance) {
 
 	}
 
 	template <typename Tail, typename PropertyType, typename... PropertyTypes>
-	void _tryRenderBasicComponentProperty(const Core::ClassProperty& property, void* instance) {
+	void _tryRenderBasicComponentProperty(const Ortha::RTTI::TypeProperty& property, void* instance) {
 		if (_renderBasicComponentProperty<PropertyType>(property, instance)) {
 			return;
 		}
 		_tryRenderBasicComponentProperty<Tail, PropertyTypes...>(property, instance);
 	}
 
-	void tryRenderBasicComponentProperty(const Core::ClassProperty& property, void* instance) {
+	void tryRenderBasicComponentProperty(const Ortha::RTTI::TypeProperty& property, void* instance) {
 		using namespace Core;
 
 		_tryRenderBasicComponentProperty<void, float, int, bool, std::string>(property, instance);
 	}
 
-	void renderComponentProperty(const Core::ReflectionContext& reflectionContext, const Core::ClassProperty& property, void* instance) {
-		if (reflectionContext.hasClass(property.getTypeId())) {
-			ImGui::SeparatorText(property.getName().c_str());
-			ImGui::PushID(property.getName().c_str());
-			void* propertyInstance = property.getRawPointer(instance);
-
-			const auto& classReflection{ reflectionContext.getClass(property.getTypeId()) };
-			for (auto&& childProperty : classReflection.getProperties()) {
-				renderComponentProperty(reflectionContext, childProperty, propertyInstance);
-			}
-			ImGui::PopID();
-		} else if (reflectionContext.hasEnum(property.getTypeId())) {
-
-		} else if (reflectionContext.hasBasicType(property.getTypeId())){
-			tryRenderBasicComponentProperty(property, instance);
-		} else {
-			return;
-		}
+	void renderComponentProperty(const Ortha::RTTI::ReflectionContext& reflectionContext, const Ortha::RTTI::TypeProperty& property, void* instance) {
+		// if (reflectionContext.hasClass(property.getTypeId())) {
+		// 	ImGui::SeparatorText(property.getName().c_str());
+		// 	ImGui::PushID(property.getName().c_str());
+		// 	void* propertyInstance = property.getRawPointer(instance);
+		//
+		// 	const auto& classReflection{ reflectionContext.getClass(property.getTypeId()) };
+		// 	for (auto&& childProperty : classReflection.getProperties()) {
+		// 		renderComponentProperty(reflectionContext, childProperty, propertyInstance);
+		// 	}
+		// 	ImGui::PopID();
+		// } else if (reflectionContext.hasEnum(property.getTypeId())) {
+		//
+		// } else if (reflectionContext.hasBasicType(property.getTypeId())){
+		// 	tryRenderBasicComponentProperty(property, instance);
+		// } else {
+		// 	return;
+		// }
 	}
 
 	void renderEntityTab(entt::registry& registry, const entt::entity entity) {
@@ -102,21 +103,21 @@ namespace DevTools::EntityToolInternal {
 		}
 
 		if (ImGui::BeginTabItem(entityName.c_str())) {
-			const auto& reflectionContext{ getCurrentReflectionContext() };
-			reflectionContext.forEachClass([&reflectionContext, &registry, entity](const ClassReflection& classReflection) {
-				if (classReflection.hasAttribute<EnTTComponentAttribute>()) {
-					const auto& enttAnnotation{ classReflection.getAttribute<EnTTComponentAttribute>() };
-					if (void* componentInstance = enttAnnotation.getComponent(registry, entity)) {
-						if (ImGui::CollapsingHeader(classReflection.getName().c_str())) {
-							ImGui::PushID(classReflection.getName().c_str());
-							for (auto&& property : classReflection.getProperties()) {
-								renderComponentProperty(reflectionContext, property, componentInstance);
-							}
-							ImGui::PopID();
-						}
-					}
-				}
-			});
+			// const auto& reflectionContext{ getCurrentReflectionContext() };
+			// reflectionContext.forEachClass([&reflectionContext, &registry, entity](const ClassReflection& classReflection) {
+			// 	if (classReflection.hasAttribute<EnTTComponentAttribute>()) {
+			// 		const auto& enttAnnotation{ classReflection.getAttribute<EnTTComponentAttribute>() };
+			// 		if (void* componentInstance = enttAnnotation.getComponent(registry, entity)) {
+			// 			if (ImGui::CollapsingHeader(classReflection.getName().c_str())) {
+			// 				ImGui::PushID(classReflection.getName().c_str());
+			// 				for (auto&& property : classReflection.getProperties()) {
+			// 					renderComponentProperty(reflectionContext, property, componentInstance);
+			// 				}
+			// 				ImGui::PopID();
+			// 			}
+			// 		}
+			// 	}
+			// });
 
 			ImGui::BeginDisabled();
 			if (ImGui::Button("Add Component")) {

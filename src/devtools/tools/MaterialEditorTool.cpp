@@ -6,7 +6,7 @@ module;
 
 module DevTools.MaterialEditorTool;
 
-import Core.Any;
+import Ortha.RTTI.Any;
 import Core.EnTTNode;
 import Core.JsonTypeLoaderAdapter;
 import Core.JsonTypeSaverAdapter;
@@ -165,7 +165,7 @@ namespace DevTools {
 
 	void MaterialEditorTool::_printExportedMaterialJSON(entt::registry& registry, const Gfx::MaterialDescriptor& materialDescriptor) {
 		using namespace MaterialEditorToolInternal;
-		std::string exportedJSON{ Core::save(registry, Core::Any{ materialDescriptor }) };
+		std::string exportedJSON{ Core::save(registry, Ortha::RTTI::Any{ materialDescriptor }) };
 		Core::logEntry(registry, PrintExportFormatString, exportedJSON);
 	}
 
