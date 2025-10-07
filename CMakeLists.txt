@@ -14,7 +14,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(RPP)
 
-set (devtools-lib-src
+set (ortha-devtools-src
         src/devtools/services/DevToolsSystemService.cpp
         src/devtools/systems/DevToolsSystems.cpp
         src/devtools/tools/EntityTool.cpp
@@ -26,7 +26,7 @@ set (devtools-lib-src
         src/devtools/tools/SpriteEditorTool.cpp
 )
 
-set (devtools-lib-modules
+set (ortha-devtools-modules
         src/devtools/SelectedEntity.cppm
         src/devtools/SelectedSceneRoot.cppm
         src/devtools/Tool.cppm
@@ -48,31 +48,31 @@ set (devtools-lib-modules
         src/devtools/tools/SpriteEditorTool.cppm
 )
 
-add_library(devtools-lib STATIC ${devtools-lib-src} ${devtools-lib-modules})
+add_library(ortha-devtools STATIC ${ortha-devtools-src} ${ortha-devtools-modules})
 
-target_sources(devtools-lib PUBLIC FILE_SET modules TYPE CXX_MODULES FILES ${devtools-lib-modules})
-target_compile_features(devtools-lib PUBLIC cxx_std_23)
-target_link_libraries(devtools-lib PUBLIC core-lib gfx-lib input-lib audio-lib imgui::imgui imguizmo::imguizmo RPP::rpp)
-target_include_directories(devtools-lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/deps/)
+target_sources(ortha-devtools PUBLIC FILE_SET modules TYPE CXX_MODULES FILES ${ortha-devtools-modules})
+target_compile_features(ortha-devtools PUBLIC cxx_std_23)
+target_link_libraries(ortha-devtools PUBLIC ortha-core ortha-gfx ortha-input ortha-audio imgui::imgui imguizmo::imguizmo RPP::rpp)
+target_include_directories(ortha-devtools PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/deps/)
 
-set (devtools-lib-fonts-src
+set (ortha-devtools-fonts-src
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/IconFontCppHeaders/IconsFontAwesome6.h_fa-regular-400.ttf.h
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/IconFontCppHeaders/IconsKenney.h_kenney-icon-font.ttf.h
 )
 
 add_custom_target(
-        devtools-lib-fonts ALL
-        DEPENDS ${devtools-lib-fonts-src}
+        ortha-devtools-fonts ALL
+        DEPENDS ${ortha-devtools-fonts-src}
         COMMENT "Building Fonts"
 )
 
 add_custom_command(
-        OUTPUT ${devtools-lib-fonts-src}
+        OUTPUT ${ortha-devtools-fonts-src}
         COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/deps/IconFontCppHeaders/GenerateIconFontCppHeaders.py
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/IconFontCppHeaders/
 )
 
-add_dependencies(devtools-lib devtools-lib-fonts)
+add_dependencies(ortha-devtools ortha-devtools-fonts)
 
 
 #add_subdirectory(tests)
