@@ -1,8 +1,8 @@
-export module DevTools.EntityTool;
+export module Ortha.DevTools.EntityTool;
 
 import entt;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	class EntityTool {
 	public:
@@ -19,4 +19,4 @@ export namespace DevTools {
 
 	};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

@@ -2,12 +2,12 @@ module;
 
 #include <string>
 
-export module DevTools.NodeTool;
+export module Ortha.DevTools.NodeTool;
 
-import Core.Node;
+import Ortha.Core.Node;
 import entt;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	class NodeTool {
 	public:
@@ -30,4 +30,4 @@ export namespace DevTools {
 
 	};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

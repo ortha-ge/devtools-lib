@@ -1,16 +1,16 @@
 
-export module DevTools.MaterialEditorToolService;
+export module Ortha.DevTools.MaterialEditorToolService;
 
-export import DevTools.MaterialEditorTool;
+export import Ortha.DevTools.MaterialEditorTool;
 
 import kangaru;
-import Core.EnTTRegistryService;
-import Core.SchedulerService;
-import Gfx.SystemsService;
+import Ortha.Core.EnTTRegistryService;
+import Ortha.Core.SchedulerService;
+import Ortha.Gfx.SystemsService;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	struct MaterialEditorToolService
 		: kgr::single_service<MaterialEditorTool, kgr::dependency<Core::EnTTRegistryService>>{};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

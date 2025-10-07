@@ -2,14 +2,14 @@ module;
 
 #include <rpp/rpp.hpp>
 
-export module DevTools.MaterialEditorTool;
+export module Ortha.DevTools.MaterialEditorTool;
 
-import Core.ResourceHandle;
-import Gfx.MaterialDescriptor;
+import Ortha.Core.ResourceHandle;
+import Ortha.Gfx.MaterialDescriptor;
 import entt;
 import glm;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	class MaterialEditorTool {
 	public:
@@ -42,4 +42,4 @@ export namespace DevTools {
 		glm::vec2 mMaterialRenderScale;
 	};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

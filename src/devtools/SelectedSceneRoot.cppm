@@ -1,7 +1,7 @@
-export module DevTools.SelectedSceneRoot;
+export module Ortha.DevTools.SelectedSceneRoot;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	struct SelectedSceneRoot {};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

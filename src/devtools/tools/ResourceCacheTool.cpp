@@ -4,13 +4,13 @@ module;
 
 #include <imgui.h>
 
-module DevTools.ResourceCacheTool;
+module Ortha.DevTools.ResourceCacheTool;
 
-import Core.ResourceCache;
-import DevTools.Tool;
+import Ortha.Core.ResourceCache;
+import Ortha.DevTools.Tool;
 import entt;
 
-namespace DevTools {
+namespace Ortha::DevTools {
 
 	ResourceCacheTool::ResourceCacheTool(entt::registry& registry) {
 		setupTool(registry);
@@ -47,4 +47,4 @@ namespace DevTools {
 	void ResourceCacheTool::destroy(entt::registry&) {}
 	void ResourceCacheTool::registerSubscriptions(entt::registry&) {}
 	void ResourceCacheTool::releaseSubscriptions() {}
-} // namespace DevTools
+} // namespace Ortha::DevTools

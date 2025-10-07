@@ -1,9 +1,9 @@
-export module DevTools.SceneViewerTool;
+export module Ortha.DevTools.SceneViewerTool;
 
 import entt;
 import glm;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	class SceneViewerTool {
 	public:
@@ -25,4 +25,4 @@ export namespace DevTools {
 
 	};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

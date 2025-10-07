@@ -4,13 +4,13 @@ module;
 
 #include <imgui.h>
 
-module DevTools.LogViewerTool;
+module Ortha.DevTools.LogViewerTool;
 
-import Core.Log;
-import DevTools.Tool;
+import Ortha.Core.Log;
+import Ortha.DevTools.Tool;
 import entt;
 
-namespace DevTools {
+namespace Ortha::DevTools {
 
 	LogViewerTool::LogViewerTool(entt::registry& registry) {
 		setupTool(registry);
@@ -46,4 +46,4 @@ namespace DevTools {
 
 	}
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

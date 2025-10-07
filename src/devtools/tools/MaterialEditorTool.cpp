@@ -4,40 +4,40 @@ module;
 #include <imgui_stdlib.h>
 #include <rpp/rpp.hpp>
 
-module DevTools.MaterialEditorTool;
+module Ortha.DevTools.MaterialEditorTool;
 
 import Ortha.RTTI.Any;
-import Core.EnTTNode;
-import Core.JsonTypeLoaderAdapter;
-import Core.JsonTypeSaverAdapter;
-import Core.Log;
-import Core.ResourceHandle;
-import Core.ResourceHandleUtils;
-import Core.ResourceLoadRequest;
-import Core.Spatial;
-import Core.TypeLoader;
-import Core.TypeSaver;
-import DevTools.Tool;
-import Gfx.Camera;
-import Gfx.RenderObject;
-import Gfx.RenderTexture;
-import Gfx.Sprite;
-import Gfx.SpriteObject;
-import Gfx.Material;
-import Gfx.MaterialDescriptor;
-import Gfx.Reflection.MaterialDescriptor;
-import Gfx.Reflection.Sprite;
-import Gfx.Viewport;
+import Ortha.Core.EnTTNode;
+import Ortha.Core.JsonTypeLoaderAdapter;
+import Ortha.Core.JsonTypeSaverAdapter;
+import Ortha.Core.Log;
+import Ortha.Core.ResourceHandle;
+import Ortha.Core.ResourceHandleUtils;
+import Ortha.Core.ResourceLoadRequest;
+import Ortha.Core.Spatial;
+import Ortha.Core.TypeLoader;
+import Ortha.Core.TypeSaver;
+import Ortha.DevTools.Tool;
+import Ortha.Gfx.Camera;
+import Ortha.Gfx.RenderObject;
+import Ortha.Gfx.RenderTexture;
+import Ortha.Gfx.Sprite;
+import Ortha.Gfx.SpriteObject;
+import Ortha.Gfx.Material;
+import Ortha.Gfx.MaterialDescriptor;
+import Ortha.Gfx.Reflection.MaterialDescriptor;
+import Ortha.Gfx.Reflection.Sprite;
+import Ortha.Gfx.Viewport;
 import entt;
 import glm;
 
-namespace DevTools::MaterialEditorToolInternal {
+namespace Ortha::DevTools::MaterialEditorToolInternal {
 	constexpr const char* PrintExportFormatString = R"(Material JSON
 =============
 {})";
 }
 
-namespace DevTools {
+namespace Ortha::DevTools {
 
 	MaterialEditorTool::MaterialEditorTool(entt::registry& registry)
 		: mMaterialDescriptor(Gfx::MaterialDescriptor{
@@ -76,7 +76,7 @@ namespace DevTools {
 
 	void MaterialEditorTool::open(entt::registry& registry) {
 		using namespace Core;
-		using namespace Gfx;
+		using namespace Ortha::Gfx;
 
 		const entt::entity sceneRoot = createEnTTNode(registry, "MaterialToolRoot");
 
@@ -165,8 +165,8 @@ namespace DevTools {
 
 	void MaterialEditorTool::_printExportedMaterialJSON(entt::registry& registry, const Gfx::MaterialDescriptor& materialDescriptor) {
 		using namespace MaterialEditorToolInternal;
-		std::string exportedJSON{ Core::save(registry, Ortha::RTTI::Any{ materialDescriptor }) };
+		std::string exportedJSON{ Core::save(registry, RTTI::Any{ materialDescriptor }) };
 		Core::logEntry(registry, PrintExportFormatString, exportedJSON);
 	}
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

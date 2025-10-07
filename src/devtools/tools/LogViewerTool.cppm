@@ -1,8 +1,8 @@
-export module DevTools.LogViewerTool;
+export module Ortha.DevTools.LogViewerTool;
 
 import entt;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	class LogViewerTool {
 	public:
@@ -15,4 +15,4 @@ export namespace DevTools {
 		void onClose(entt::registry&);
 	};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

@@ -4,14 +4,14 @@ module;
 
 #include <rpp/rpp.hpp>
 
-export module DevTools.SpriteEditorTool;
+export module Ortha.DevTools.SpriteEditorTool;
 
-import Core.ResourceHandle;
-import Gfx.SpriteDescriptor;
+import Ortha.Core.ResourceHandle;
+import Ortha.Gfx.SpriteDescriptor;
 import entt;
 import glm;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	class SpriteEditorTool {
 	public:
@@ -41,11 +41,11 @@ export namespace DevTools {
 		uint32_t mSelectedFrame{ 0u };
 
 		rpp::subjects::behavior_subject<std::string> mMaterialResourceFilePath;
-		rpp::subjects::behavior_subject<Gfx::SpriteDescriptor> mSprite;
+		rpp::subjects::behavior_subject<Ortha::Gfx::SpriteDescriptor> mSprite;
 
 		rpp::schedulers::run_loop mRunLoop;
 		rpp::composite_disposable mSubscriptions;
 
 	};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

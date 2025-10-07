@@ -1,16 +1,16 @@
 
-export module DevTools.EntityToolService;
+export module Ortha.DevTools.EntityToolService;
 
-export import DevTools.EntityTool;
+export import Ortha.DevTools.EntityTool;
 
 import kangaru;
-import Core.EnTTRegistryService;
-import Core.SchedulerService;
-import Gfx.SystemsService;
+import Ortha.Core.EnTTRegistryService;
+import Ortha.Core.SchedulerService;
+import Ortha.Gfx.SystemsService;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	struct EntityToolService
 		: kgr::single_service<EntityTool, kgr::dependency<Core::EnTTRegistryService>>{};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

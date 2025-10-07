@@ -1,9 +1,9 @@
 module;
 
-export module DevTools.SelectedEntity;
+export module Ortha.DevTools.SelectedEntity;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	struct SelectedEntity {};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

@@ -1,8 +1,8 @@
-export module DevTools.ResourceCacheTool;
+export module Ortha.DevTools.ResourceCacheTool;
 
 import entt;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	class ResourceCacheTool {
 	public:
@@ -20,4 +20,4 @@ export namespace DevTools {
 		void registerSubscriptions(entt::registry&);
 		void releaseSubscriptions();
 	};
-} // namespace DevTools
+} // namespace Ortha::DevTools

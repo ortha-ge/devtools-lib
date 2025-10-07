@@ -1,11 +1,11 @@
-export module DevTools.Systems;
+export module Ortha.DevTools.Systems;
 
-import Core.ResourceHandle;
-import Core.Scheduler;
-import Gfx.Systems;
+import Ortha.Core.ResourceHandle;
+import Ortha.Core.Scheduler;
+import Ortha.Gfx.Systems;
 import entt;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	class DevToolsSystems {
 	public:
@@ -38,4 +38,4 @@ export namespace DevTools {
 
 	};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

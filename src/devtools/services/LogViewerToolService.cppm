@@ -1,16 +1,16 @@
 
-export module DevTools.LogViewerToolService;
+export module Ortha.DevTools.LogViewerToolService;
 
-export import DevTools.LogViewerTool;
+export import Ortha.DevTools.LogViewerTool;
 
 import kangaru;
-import Core.EnTTRegistryService;
-import Core.SchedulerService;
-import Gfx.SystemsService;
+import Ortha.Core.EnTTRegistryService;
+import Ortha.Core.SchedulerService;
+import Ortha.Gfx.SystemsService;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	struct LogViewerToolService
 		: kgr::single_service<LogViewerTool, kgr::dependency<Core::EnTTRegistryService>>{};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

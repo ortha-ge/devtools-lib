@@ -3,11 +3,11 @@ module;
 #include <functional>
 #include <string>
 
-export module DevTools.Tool;
+export module Ortha.DevTools.Tool;
 
 import entt;
 
-export namespace DevTools {
+export namespace Ortha::DevTools {
 
 	struct Tool {
 
@@ -24,4 +24,4 @@ export namespace DevTools {
 		bool isOpenFunctionCalled { false };
 	};
 
-} // namespace DevTools
+} // namespace Ortha::DevTools

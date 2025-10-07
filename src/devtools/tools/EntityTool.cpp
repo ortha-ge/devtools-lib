@@ -3,20 +3,20 @@ module;
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
-module DevTools.EntityTool;
+module Ortha.DevTools.EntityTool;
 
-import Core.EnTTComponentAttribute;
-import Core.Log;
-import Core.Node;
-import Core.NodeHandle;
-import Core.Spatial;
-import DevTools.SelectedEntity;
-import DevTools.Tool;
+import Ortha.Core.EnTTComponentAttribute;
+import Ortha.Core.Log;
+import Ortha.Core.Node;
+import Ortha.Core.NodeHandle;
+import Ortha.Core.Spatial;
+import Ortha.DevTools.SelectedEntity;
+import Ortha.DevTools.Tool;
 import Ortha.RTTI.ReflectionContext;
 import Ortha.RTTI.TypeHandle;
 import Ortha.RTTI.TypeProperty;
 
-namespace DevTools::EntityToolInternal {
+namespace Ortha::DevTools::EntityToolInternal {
 
 	template <typename T>
 	void _renderComponentProperty(const char* propertyName, T& property) {
@@ -44,7 +44,7 @@ namespace DevTools::EntityToolInternal {
 	}
 
 	template <typename PropertyType>
-	bool _renderBasicComponentProperty(const Ortha::RTTI::TypeProperty& property, void* instance) {
+	bool _renderBasicComponentProperty(const RTTI::TypeProperty& property, void* instance) {
 		using namespace Core;
 		using namespace Ortha::RTTI;
 		if (property.getTypeId() == TypeHandle::get<PropertyType>()) {
@@ -56,25 +56,25 @@ namespace DevTools::EntityToolInternal {
 	}
 
 	template <typename Tail>
-	void _tryRenderBasicComponentProperty(const Ortha::RTTI::TypeProperty& property, void* instance) {
+	void _tryRenderBasicComponentProperty(const RTTI::TypeProperty& property, void* instance) {
 
 	}
 
 	template <typename Tail, typename PropertyType, typename... PropertyTypes>
-	void _tryRenderBasicComponentProperty(const Ortha::RTTI::TypeProperty& property, void* instance) {
+	void _tryRenderBasicComponentProperty(const RTTI::TypeProperty& property, void* instance) {
 		if (_renderBasicComponentProperty<PropertyType>(property, instance)) {
 			return;
 		}
 		_tryRenderBasicComponentProperty<Tail, PropertyTypes...>(property, instance);
 	}
 
-	void tryRenderBasicComponentProperty(const Ortha::RTTI::TypeProperty& property, void* instance) {
+	void tryRenderBasicComponentProperty(const RTTI::TypeProperty& property, void* instance) {
 		using namespace Core;
 
 		_tryRenderBasicComponentProperty<void, float, int, bool, std::string>(property, instance);
 	}
 
-	void renderComponentProperty(const Ortha::RTTI::ReflectionContext& reflectionContext, const Ortha::RTTI::TypeProperty& property, void* instance) {
+	void renderComponentProperty(const RTTI::ReflectionContext& reflectionContext, const RTTI::TypeProperty& property, void* instance) {
 		// if (reflectionContext.hasClass(property.getTypeId())) {
 		// 	ImGui::SeparatorText(property.getName().c_str());
 		// 	ImGui::PushID(property.getName().c_str());
@@ -129,9 +129,9 @@ namespace DevTools::EntityToolInternal {
 		}
 	}
 
-} // namespace DevTools::EntityToolInternal
+} // namespace Ortha::DevTools::EntityToolInternal
 
-namespace DevTools {
+namespace Ortha::DevTools {
 
 
 
@@ -174,4 +174,4 @@ namespace DevTools {
 
 	}
 
-} // namespace DevTools
+} // namespace Ortha::DevTools
