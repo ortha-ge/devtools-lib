@@ -45,8 +45,8 @@ namespace Ortha::DevTools::EntityToolInternal {
 
 	template <typename PropertyType>
 	bool _renderBasicComponentProperty(const RTTI::TypeProperty& property, void* instance) {
-		using namespace Core;
-		using namespace Ortha::RTTI;
+		using namespace Ortha::Core;
+		using namespace RTTI;
 		if (property.getTypeId() == TypeHandle::get<PropertyType>()) {
 			//_renderComponentProperty(property.getName().c_str(), property.apply<PropertyType>(instance));
 			return true;
@@ -69,7 +69,7 @@ namespace Ortha::DevTools::EntityToolInternal {
 	}
 
 	void tryRenderBasicComponentProperty(const RTTI::TypeProperty& property, void* instance) {
-		using namespace Core;
+		using namespace Ortha::Core;
 
 		_tryRenderBasicComponentProperty<void, float, int, bool, std::string>(property, instance);
 	}
@@ -95,7 +95,7 @@ namespace Ortha::DevTools::EntityToolInternal {
 	}
 
 	void renderEntityTab(entt::registry& registry, const entt::entity entity) {
-		using namespace Core;
+		using namespace Ortha::Core;
 
 		std::string entityName{ "Unnamed Entity" };
 		if (registry.all_of<NodeHandle>(entity)) {
@@ -153,7 +153,7 @@ namespace Ortha::DevTools {
 	}
 
 	void EntityTool::onUpdate(entt::registry& registry) {
-		using namespace Core;
+		using namespace Ortha::Core;
 		using namespace EntityToolInternal;
 
 		auto selectedEntityView = registry.view<SelectedEntity>();

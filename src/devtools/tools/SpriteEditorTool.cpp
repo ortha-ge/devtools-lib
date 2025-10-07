@@ -79,8 +79,8 @@ namespace Ortha::DevTools {
 	}
 
 	void SpriteEditorTool::open(entt::registry& registry) {
-		using namespace Core;
-		using namespace Ortha::Gfx;
+		using namespace Ortha::Core;
+		using namespace Gfx;
 
 		const entt::entity sceneRoot = createEnTTNode(registry, "MaterialToolRoot");
 
@@ -185,9 +185,10 @@ namespace Ortha::DevTools {
 	}
 
 	void SpriteEditorTool::_printSavedSpriteJSON(entt::registry& registry, const Gfx::SpriteDescriptor& sprite) {
+		using namespace RTTI;
 		using namespace SpriteEditorToolInternal;
 
-		std::string exportedJSON{ Core::save(registry, RTTI::Any{ sprite }) };
+		std::string exportedJSON{ Core::save(registry, Any{ sprite }) };
 		Core::logEntry(registry, PrintExportFormatString, exportedJSON);
 	}
 

@@ -27,8 +27,8 @@ namespace Ortha::DevTools {
 	}
 
 	void SceneViewerTool::setupTool(entt::registry& registry) {
-		using namespace Core;
-		using namespace Ortha::Gfx;
+		using namespace Ortha::Core;
+		using namespace Gfx;
 
 		const entt::entity toolEntity = registry.create();
 		registry.emplace<Tool>(toolEntity, Tool {
@@ -67,8 +67,8 @@ namespace Ortha::DevTools {
 	}
 
 	void SceneViewerTool::onUpdate(entt::registry& registry) {
-		using namespace Core;
-		using namespace Ortha::Gfx;
+		using namespace Ortha::Core;
+		using namespace Gfx;
 
 		auto selectedSceneRootView = registry.view<SelectedSceneRoot>();
 		if (selectedSceneRootView.empty()) {

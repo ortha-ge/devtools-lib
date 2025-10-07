@@ -34,9 +34,10 @@ namespace Ortha::DevTools::NodeToolInternal {
 {})";
 
 	void selectNodeEntity(entt::registry& registry, Core::Node::Ptr node) {
-		using namespace Core;
+		using namespace Ortha::Core;
+		using namespace RTTI;
 
-		if (node->getTypeId() != RTTI::TypeId::get<EnTTNode>()) {
+		if (node->getTypeId() != TypeId::get<EnTTNode>()) {
 			return;
 		}
 
@@ -52,9 +53,10 @@ namespace Ortha::DevTools::NodeToolInternal {
 	}
 
 	void selectSceneRootEntity(entt::registry& registry, Core::Node::Ptr node) {
-		using namespace Core;
+		using namespace Ortha::Core;
+		using namespace RTTI;
 
-		if (node->getTypeId() != RTTI::TypeId::get<EnTTNode>()) {
+		if (node->getTypeId() != TypeId::get<EnTTNode>()) {
 			return;
 		}
 
@@ -70,7 +72,8 @@ namespace Ortha::DevTools::NodeToolInternal {
 	}
 
 	void exportNodeJSON(entt::registry& registry, Core::Node::Ptr node) {
-		std::string exportedJSON{ Core::save(registry, RTTI::Any{ *node.get() }) };
+		using namespace RTTI;
+		std::string exportedJSON{ Core::save(registry, Any{ *node.get() }) };
 		Core::logEntry(registry, PrintExportFormatString, exportedJSON);
 	}
 
@@ -98,7 +101,7 @@ namespace Ortha::DevTools {
 	}
 
 	void NodeTool::onUpdate(entt::registry& registry) {
-		using namespace Core;
+		using namespace Ortha::Core;
 		using namespace NodeToolInternal;
 
 		std::vector<Node::Ptr> rootNodes;
@@ -164,7 +167,7 @@ namespace Ortha::DevTools {
 	}
 
 	void NodeTool::recurseNodeTree(entt::registry& registry, Core::Node::Ptr node, size_t idIndex) {
-		using namespace Core;
+		using namespace Ortha::Core;
 		using namespace NodeToolInternal;
 
 		ImGui::PushID(std::format("{}_{}", node->getName(), idIndex).c_str());

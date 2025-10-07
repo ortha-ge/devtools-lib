@@ -75,8 +75,8 @@ namespace Ortha::DevTools {
 	}
 
 	void MaterialEditorTool::open(entt::registry& registry) {
-		using namespace Core;
-		using namespace Ortha::Gfx;
+		using namespace Ortha::Core;
+		using namespace Gfx;
 
 		const entt::entity sceneRoot = createEnTTNode(registry, "MaterialToolRoot");
 
@@ -164,8 +164,9 @@ namespace Ortha::DevTools {
 	}
 
 	void MaterialEditorTool::_printExportedMaterialJSON(entt::registry& registry, const Gfx::MaterialDescriptor& materialDescriptor) {
+		using namespace RTTI;
 		using namespace MaterialEditorToolInternal;
-		std::string exportedJSON{ Core::save(registry, RTTI::Any{ materialDescriptor }) };
+		std::string exportedJSON{ Core::save(registry, Any{ materialDescriptor }) };
 		Core::logEntry(registry, PrintExportFormatString, exportedJSON);
 	}
 

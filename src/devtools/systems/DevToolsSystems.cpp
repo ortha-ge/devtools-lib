@@ -308,8 +308,8 @@ namespace Ortha::DevTools {
 	DevToolsSystems::DevToolsSystems(entt::registry& registry, Core::Scheduler& scheduler)
 		: mRegistry{ registry }
 		, mScheduler{ scheduler } {
-		using namespace Core;
-		using namespace Ortha::Gfx;
+		using namespace Ortha::Core;
+		using namespace Gfx;
 
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -434,7 +434,7 @@ namespace Ortha::DevTools {
 	}
 
 	entt::entity DevToolsSystems::createFontTexture(entt::registry& registry) {
-		using namespace Ortha::Gfx;
+		using namespace Gfx;
 
 		uint8_t* data{};
 		int32_t width{};
@@ -517,8 +517,9 @@ namespace Ortha::DevTools {
 	}
 
 	void DevToolsSystems::_renderImGui(entt::registry& registry) {
-		using namespace Core;
-		using namespace Ortha::Gfx;
+		using namespace Ortha::Core;
+		using namespace RTTI;
+		using namespace Gfx;
 
 		if (!registry.all_of<Viewport>(mViewportEntity)) {
 			return;
@@ -600,11 +601,11 @@ namespace Ortha::DevTools {
 				renderCommand.sortDepth = sortDepth++;
 
 				renderCommand.shaderProgram = shaderProgramEntity;
-				renderCommand.uniformData["s_texColor"] = RTTI::Any(entt::entity{ mFontImage });
+				renderCommand.uniformData["s_texColor"] = Any(entt::entity{ mFontImage });
 
 				if (ImTextureID{0} != cmd->TextureId) {
 					const entt::entity textureEntity = static_cast<entt::entity>(cmd->TextureId);
-					renderCommand.uniformData["s_texColor"] = RTTI::Any(entt::entity{ textureEntity });
+					renderCommand.uniformData["s_texColor"] = Any(entt::entity{ textureEntity });
 
 					bool lod = false;
 					if (lod) {
