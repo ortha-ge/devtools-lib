@@ -211,8 +211,8 @@ namespace DevTools {
 
 		if (isTreeOpen) {
 			const auto& children{ node->getChildren() };
-			for (size_t i = 0; i < children.size(); ++i) {
-				recurseNodeTree(registry, children[i], i);
+			for (auto it = children.begin(); it != children.end(); ++it) {
+				recurseNodeTree(registry, (*it), std::distance(children.begin(), it));
 			}
 
 			ImGui::TreePop();
