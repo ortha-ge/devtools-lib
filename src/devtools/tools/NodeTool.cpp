@@ -101,7 +101,8 @@ namespace Ortha::DevTools {
 	}
 
 	void NodeTool::onUpdate(entt::registry& registry) {
-		using namespace Ortha::Core;
+		using namespace Core;
+		using namespace RTTI;
 		using namespace NodeToolInternal;
 
 		std::vector<Node::Ptr> rootNodes;
@@ -112,15 +113,12 @@ namespace Ortha::DevTools {
 				}
 			});
 
-
-
 		const bool scrollingReturnsTrue = ImGui::BeginChild("scrolling", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
 
 		if (ImGui::BeginPopupContextWindow()) {
 			if (ImGui::Button("New Root Node")) {
 				createEnTTNode(registry, "New Node");
 			}
-
 
 			bool addNodePressed = ImGui::Button("Add Node from JSON");
 
@@ -131,9 +129,9 @@ namespace Ortha::DevTools {
 
 				if (ImGui::Button("Load")) {
 					auto node = std::make_shared<Node>();
-					RTTI::Any nodeAny{ *node.get() };
+					Any nodeAny{ *node.get() };
 
-					const auto& reflectionContext{ static_cast<RTTI::ReflectionContext&>(RTTI::getCurrentReflectionContext()) };
+					const auto& reflectionContext{ ReflectionContextStack::getCurrentContext() };
 					load(registry, reflectionContext, mLoadNodeJsonString, nodeAny);
 
 					const entt::entity nodeHandle = registry.create();

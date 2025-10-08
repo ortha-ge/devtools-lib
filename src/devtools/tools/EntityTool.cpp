@@ -13,7 +13,7 @@ import Ortha.Core.Spatial;
 import Ortha.DevTools.SelectedEntity;
 import Ortha.DevTools.Tool;
 import Ortha.RTTI.ReflectionContext;
-import Ortha.RTTI.TypeHandle;
+import Ortha.RTTI.TypeId;
 import Ortha.RTTI.TypeProperty;
 
 namespace Ortha::DevTools::EntityToolInternal {
@@ -47,7 +47,7 @@ namespace Ortha::DevTools::EntityToolInternal {
 	bool _renderBasicComponentProperty(const RTTI::TypeProperty& property, void* instance) {
 		using namespace Ortha::Core;
 		using namespace RTTI;
-		if (property.getTypeId() == TypeHandle::get<PropertyType>()) {
+		if (property.getTypeId() == TypeId::get<PropertyType>()) {
 			//_renderComponentProperty(property.getName().c_str(), property.apply<PropertyType>(instance));
 			return true;
 		}
